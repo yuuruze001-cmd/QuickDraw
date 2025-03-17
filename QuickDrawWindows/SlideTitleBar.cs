@@ -1,11 +1,7 @@
-using CommunityToolkit.WinUI.UI;
+using CommunityToolkit.WinUI;
 using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Data;
-using Microsoft.UI.Xaml.Documents;
-using Microsoft.UI.Xaml.Input;
-using Microsoft.UI.Xaml.Media;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -118,6 +114,7 @@ namespace QuickDraw
 
             await Task.Delay(delay);
             m_titleBar.PreferredHeightOption = TitleBarHeightOption.Tall;
+            m_titleBar.IconShowOptions = IconShowOptions.HideIconAndSystemMenu;
             ApplyInset();
             SetDragRegion();
         }

@@ -1,17 +1,7 @@
-using CommunityToolkit.WinUI.UI;
 using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Data;
-using Microsoft.UI.Xaml.Documents;
-using Microsoft.UI.Xaml.Input;
-using Microsoft.UI.Xaml.Media;
 using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Reflection.Emit;
-using System.Runtime.InteropServices.WindowsRuntime;
 using System.Threading.Tasks;
 
 // To learn more about WinUI, the WinUI project structure,
@@ -55,6 +45,7 @@ namespace QuickDraw
 
             await Task.Delay(delay);
             m_titleBar.PreferredHeightOption = TitleBarHeightOption.Standard;
+            m_titleBar.IconShowOptions = IconShowOptions.ShowIconAndSystemMenu;
             ApplyInset();
             SetDragRegion();
         }

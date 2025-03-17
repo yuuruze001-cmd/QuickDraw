@@ -1,30 +1,20 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Controls.Primitives;
 using Microsoft.UI.Xaml.Data;
 using Microsoft.UI.Xaml.Input;
-using Microsoft.UI.Xaml.Media;
-using Microsoft.UI.Xaml.Navigation;
-using CommunityToolkit.WinUI.UI;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Diagnostics;
-using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
-using System.Runtime.InteropServices.WindowsRuntime;
 using Windows.Foundation;
-using Windows.Foundation.Collections;
 using System.Threading.Tasks;
 using System.Text.Json;
-using System.Text.Json.Serialization;
 using Windows.Storage;
 using System.Collections.ObjectModel;
-using System.Diagnostics.Eventing.Reader;
-using System.Collections.Specialized;
 
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
@@ -372,7 +362,14 @@ namespace QuickDraw
 
         private static IEnumerable<string> GetFolderImages(string filepath)
         {
-            IEnumerable<string> files = Directory.EnumerateFiles(filepath, "*.*", SearchOption.AllDirectories)
+            var enumerationOptions = new EnumerationOptions
+            {
+                IgnoreInaccessible = true,
+                RecurseSubdirectories = true,
+                AttributesToSkip = System.IO.FileAttributes.Hidden | System.IO.FileAttributes.System | System.IO.FileAttributes.ReparsePoint
+            };
+
+            IEnumerable<string> files = Directory.EnumerateFiles(filepath, "*.*", enumerationOptions)
                                     .Where(s => s.EndsWith(".jpg", StringComparison.OrdinalIgnoreCase)
                                             || s.EndsWith(".jpeg", StringComparison.OrdinalIgnoreCase)
                                             || s.EndsWith(".png", StringComparison.OrdinalIgnoreCase));
@@ -397,6 +394,7 @@ namespace QuickDraw
                     );
                     _ = dialog.Show(IntPtr.Zero);
 
+                    // TODO: Handle error when nothing is selected with file selection
                     dialog.GetResults(out IShellItemArray shellItemArray);
 
                     if (shellItemArray != null)

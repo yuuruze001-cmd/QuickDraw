@@ -43,28 +43,28 @@
                 <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
 
-                <CommandBar  x:Name="commandBar"  DefaultLabelPosition="Right" VerticalContentAlignment="Center" Grid.Row="0">
-                    <AppBarButton Icon="Refresh" Label="Refresh">
-                        <AppBarButton.KeyboardAccelerators>
-                            <KeyboardAccelerator Modifiers="Control" Key="R"/>
-                            <KeyboardAccelerator Key="F5"/>
-                        </AppBarButton.KeyboardAccelerators>
-                    </AppBarButton>
-                    <AppBarButton x:Name="AddFoldersButton" Icon="Add" Label="Add Folder(s)" Click="AddFoldersButton_Click">
-                        <AppBarButton.KeyboardAccelerators>
-                            <KeyboardAccelerator Modifiers="Control" Key="O"/>
-                        </AppBarButton.KeyboardAccelerators>
-                    </AppBarButton>
-                    <CommandBar.Content>
-                        <StackPanel Orientation="Horizontal">
-                            <CheckBox Margin="10,0,0,0" MinWidth="0" VerticalAlignment="Center"/>
-                            <TextBlock Text="Select Folder(s)" VerticalAlignment="Center"/>
-                        </StackPanel>
+            <CommandBar  x:Name="commandBar"  DefaultLabelPosition="Right" VerticalContentAlignment="Center" Grid.Row="0">
+                <AppBarButton Icon="Refresh" Label="Refresh">
+                    <AppBarButton.KeyboardAccelerators>
+                        <KeyboardAccelerator Modifiers="Control" Key="R"/>
+                        <KeyboardAccelerator Key="F5"/>
+                    </AppBarButton.KeyboardAccelerators>
+                </AppBarButton>
+                <AppBarButton x:Name="AddFoldersButton" Icon="Add" Label="Add Folder(s)" Click="AddFoldersButton_Click">
+                    <AppBarButton.KeyboardAccelerators>
+                        <KeyboardAccelerator Modifiers="Control" Key="O"/>
+                    </AppBarButton.KeyboardAccelerators>
+                </AppBarButton>
+                <CommandBar.Content>
+                    <StackPanel Orientation="Horizontal">
+                        <CheckBox Margin="10,0,0,0" MinWidth="0" VerticalAlignment="Center"/>
+                        <TextBlock Text="Select Folder(s)" VerticalAlignment="Center"/>
+                    </StackPanel>
 
-                    </CommandBar.Content>
-                </CommandBar>
+                </CommandBar.Content>
+            </CommandBar>
 
-            <ListView x:Name="ImageFolderListView" Background="{StaticResource CardBackgroundFillColorDefaultBrush}" CornerRadius="6" CanDragItems="True" CanReorderItems="True" AllowDrop="True" SelectionMode="Multiple" Grid.Row="1" BorderThickness="1" BorderBrush="{StaticResource CardStrokeColorDefaultBrush}" >
+            <ListView x:Name="ImageFolderListView" Background="{StaticResource CardBackgroundFillColorDefaultBrush}" CornerRadius="6" IsItemClickEnabled="False" CanDragItems="False" CanReorderItems="True" AllowDrop="True" SelectionMode="Multiple" Grid.Row="1" BorderThickness="1" BorderBrush="{StaticResource CardStrokeColorDefaultBrush}" >
                 <ListView.ItemTemplate>
                     <DataTemplate x:DataType="local:ImageFolder">
                         <Grid SizeChanged="Grid_SizeChanged" Padding="0,8,0,8">

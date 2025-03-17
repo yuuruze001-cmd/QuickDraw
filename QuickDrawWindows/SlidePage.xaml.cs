@@ -23,10 +23,10 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices.WindowsRuntime;
 using System.Threading;
 using System.Threading.Tasks;
-using Windows.Devices.AllJoyn;
 using Windows.Foundation;
 using Windows.Foundation.Collections;
 using Windows.Foundation.Metadata;
+using Windows.Storage;
 
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
@@ -84,10 +84,13 @@ namespace QuickDraw
         private bool grayscale = false;
 
         private readonly object cachedImagesLock = new();
+        private readonly object currentImageNodeLock = new();
 
         private readonly DispatcherQueueTimer m_SlideTimer;
 
         private int m_TicksElapsed = 0;
+
+        private TaskCompletionSource<bool> imageCacheFilled = new();
 
         public SlidePage()
         {
@@ -100,13 +103,14 @@ namespace QuickDraw
             m_SlideTimer.Interval = new(TimeSpan.TicksPerMillisecond * (long)1000);
             m_SlideTimer.Tick += async (sender, e) =>
             {
-                AppTitleBar.Progress = (double)m_TicksElapsed / 300.0;
+                AppTitleBar.Progress = (double)m_TicksElapsed / (double)30;
                 m_TicksElapsed += 1;
-                if (m_TicksElapsed > 300)
+                if (m_TicksElapsed > 30)
                 {
                     m_TicksElapsed = 0;
 
                     await Move(LoadDirection.Forwards);
+      
                 }
             };
             m_SlideTimer.Start();
@@ -114,6 +118,7 @@ namespace QuickDraw
 
         void SlidePage_Unloaded(object sender, RoutedEventArgs e)
         {
+            this.m_SlideTimer.Stop();
             this.SlideCanvas.RemoveFromVisualTree();
             this.SlideCanvas = null;
         }
@@ -121,15 +126,21 @@ namespace QuickDraw
         private void CanvasControl_Draw(CanvasControl sender, CanvasDrawEventArgs args)
         {
             HandleLoadExceptions();
+            bool isCurrentImageNull = true;
 
-            if (currentImageNode == null)
+            lock (currentImageNodeLock)
             {
+                isCurrentImageNull = currentImageNode == null;
             }
-            else
+
+            if (!isCurrentImageNull)
             {
                 CanvasVirtualBitmap bitmap;
 
-                bitmap = currentImageNode.Value;
+                lock (currentImageNodeLock)
+                {
+                    bitmap = currentImageNode.Value;
+                }
 
                 Size canvasSize = new(sender.ActualWidth, sender.ActualHeight);
                 double canvasAspect = canvasSize.Width / canvasSize.Height;
@@ -180,7 +191,6 @@ namespace QuickDraw
         private void LoadImageInit()
         {
             Debug.Assert(imageLoadTask == null);
-
             imageLoadTask = FillImageCacheAsync(this.SlideCanvas, imageCachePosition).ContinueWith(_ => {
                 SlideCanvas.Invalidate(); 
             });
@@ -196,9 +206,15 @@ namespace QuickDraw
         {
             var bitmap = await CanvasVirtualBitmap.LoadAsync(resourceCreator, imagePaths[index]);
 
-            currentImageNode = cachedImages.AddFirst(bitmap);
+            lock (currentImageNodeLock)
+            {
+                currentImageNode = cachedImages.AddFirst(bitmap);
+            }
 
-            imageCachePosition = index;
+            lock (cachedImagesLock)
+            {
+                imageCachePosition = index;
+            }
 
             var remainingCacheSize = Math.Min(imagePaths.Count, CACHE_SIZE) - 1;
             var numBefore = (remainingCacheSize / 2);
@@ -248,6 +264,11 @@ namespace QuickDraw
             Task loadAfterTask = Task.Run(LoadAfterAsync);
             await loadBeforeTask;
             await loadAfterTask;
+
+            if (!imageCacheFilled.Task.IsCompleted)
+            {
+                imageCacheFilled.SetResult(true);
+            }
         }
 
         private void SlideCanvas_CreateResources(CanvasControl sender, CanvasCreateResourcesEventArgs args)
@@ -267,8 +288,18 @@ namespace QuickDraw
             }
 
             // Unload previously loaded images
-            currentImageNode = null;
-            cachedImages.Clear();
+           
+            lock (currentImageNodeLock)
+            {
+                currentImageNode = null;
+            }
+
+            lock (cachedImagesLock)
+            { 
+                cachedImages.Clear();
+            }
+
+            imageCacheFilled = new();
 
             LoadImageInit();
         }
@@ -293,57 +324,73 @@ namespace QuickDraw
             var increment = direction == LoadDirection.Forwards ? 1 : -1;
             var halfCache = direction == LoadDirection.Forwards ? HALF_CACHE_SIZE : -HALF_CACHE_SIZE;
 
-            var imageIndex = Mod(imageCachePosition + increment + halfCache, imagePaths.Count);
+            var imageIndex = 0;
+            lock (cachedImagesLock)
+            {
+                imageIndex = Mod(imageCachePosition + increment + halfCache, imagePaths.Count);
+            }
 
             var bitmap = await CanvasVirtualBitmap.LoadAsync(resourceCreator, imagePaths[imageIndex]);
 
-            switch (direction)
+            lock (cachedImagesLock)
             {
-                case LoadDirection.Backwards:
-                    {
-                        cachedImages.AddFirst(bitmap);
+                switch (direction)
+                {
+                    case LoadDirection.Backwards:
+                        {
+                            cachedImages.AddFirst(bitmap);
 
-                        cachedImages.Last.Value.Dispose();
-                        cachedImages.RemoveLast();
-                    }
-                    break;
+                            cachedImages.Last.Value.Dispose();
+                            cachedImages.RemoveLast();
+                        }
+                        break;
 
-                case LoadDirection.Forwards:
-                    {
-                        cachedImages.AddLast(bitmap);
+                    case LoadDirection.Forwards:
+                        {
+                            cachedImages.AddLast(bitmap);
 
-                        cachedImages.First.Value.Dispose();
-                        cachedImages.RemoveFirst();
-                    }
-                    break;
+                            cachedImages.First.Value.Dispose();
+                            cachedImages.RemoveFirst();
+                        }
+                        break;
+                }
+
+                imageCachePosition = Mod(imageCachePosition + increment, imagePaths.Count);
             }
-
-            imageCachePosition = Mod(imageCachePosition + increment, imagePaths.Count);
         }
 
         private async Task Move(LoadDirection direction)
         {
+            await imageCacheFilled.Task;
 
             if (imagePaths.Count > CACHE_SIZE)
             {
-
                 await UpdateImageAsync(this.SlideCanvas, direction);
             }
 
             if (imagePaths.Count <= CACHE_SIZE)
             {
-                currentImageNode = direction == LoadDirection.Forwards ?
+                lock (currentImageNodeLock)
+                {
+                    currentImageNode = direction == LoadDirection.Forwards ?
                     (currentImageNode.Next ?? cachedImages.First) :
                     (currentImageNode.Previous ?? cachedImages.Last);
+                }
             }
             else
             {
-                currentImageNode = direction == LoadDirection.Forwards ?
+                lock (currentImageNodeLock)
+                {
+                    currentImageNode = direction == LoadDirection.Forwards ?
                     currentImageNode.Next :
                     currentImageNode.Previous;
+                }
             }
 
-            SlideCanvas.Invalidate();
+            if (SlideCanvas != null)
+            {
+                SlideCanvas.Invalidate();
+            }
         }
 
         private async void AppTitleBar_NextButtonClick(object sender, RoutedEventArgs e)
