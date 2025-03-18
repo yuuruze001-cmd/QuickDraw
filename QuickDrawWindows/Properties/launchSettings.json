@@ -4,7 +4,8 @@
       "commandName": "MsixPackage"
     },
     "QuickDraw (Unpackaged)": {
-      "commandName": "Project"
+      "commandName": "Project",
+      "nativeDebugging": true
     }
   }
 }

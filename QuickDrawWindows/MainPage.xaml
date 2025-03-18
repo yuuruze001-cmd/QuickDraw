@@ -79,6 +79,7 @@
                                 <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
                             <TextBlock x:Name="PathText" TextWrapping="Wrap" VerticalAlignment="Center" Text="{x:Bind Path}" Margin="0,0,0,0" Grid.Column="0" SizeChanged="PathText_SizeChanged"/>
+                            <!-- TODO: Maybe show loading animation when recounting images in folder -->
                             <TextBlock x:Name="ImageCountText" VerticalAlignment="Center" Text="{x:Bind ImageCount}"  Margin="20,0,0,0" Grid.Column="1" SizeChanged="ImageCountText_SizeChanged"/>
                             <StackPanel Grid.Column="3" Orientation="Horizontal">
                                 <Button Padding="5,5,5,6" Margin="10,0,0,0">

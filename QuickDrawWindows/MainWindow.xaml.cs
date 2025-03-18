@@ -1,6 +1,7 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Animation;
+using System.Collections.Generic;
 using System.Diagnostics;
 using Windows.UI;
 
@@ -14,6 +15,8 @@ namespace QuickDraw
     /// </summary>
     public sealed partial class MainWindow : WinUIEx.WindowEx
     {
+        public List<string> imagePaths = [];
+
         public MainWindow()
         {
             this.InitializeComponent();

@@ -15,6 +15,7 @@ using System.Threading.Tasks;
 using System.Text.Json;
 using Windows.Storage;
 using System.Collections.ObjectModel;
+using System.Text.Json.Serialization;
 
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
@@ -135,10 +136,14 @@ namespace QuickDraw
         public string Path { get; set; }
         public int ImageCount { get; set; }
 
-        public ImageFolder(string path, int imageCount)
+        [JsonIgnore]
+        public bool IsLoading { get; set; } = false;
+
+        public ImageFolder(string path, int imageCount, bool isLoading = false)
         {
             Path = path;
             ImageCount = imageCount;
+            IsLoading = isLoading;
         }
     }
 
@@ -379,8 +384,6 @@ namespace QuickDraw
 
         private void OpenFolders()
         {
-            DispatcherQueue.TryEnqueue(() =>
-            {
                 IFileOpenDialog dialog = null;
                 uint count = 0;
                 try
@@ -402,34 +405,51 @@ namespace QuickDraw
                         string filepath = null;
                         shellItemArray.GetCount(out count);
 
-                        for (uint i = 0; i < count; i++)
+                        Task.Run(() =>
                         {
-                            shellItemArray.GetItemAt(i, out IShellItem shellItem);
-
-                            if (shellItem != null)
+                            for (uint i = 0; i < count; i++)
                             {
-                                shellItem.GetDisplayName(SIGDN.FILESYSPATH, out IntPtr i_result);
-                                filepath = Marshal.PtrToStringAuto(i_result);
-                                Marshal.FreeCoTaskMem(i_result);
+                                shellItemArray.GetItemAt(i, out IShellItem shellItem);
 
-                                IEnumerable<string> files = GetFolderImages(filepath);
-
-                                var folder = new ImageFolder(filepath, files.Count());
-
-                                var oldFolder = ImageFolders.FirstOrDefault<ImageFolder>((f) => f.Path == folder.Path);
-                                var folderIndex = ImageFolders.IndexOf(oldFolder);
-
-                                if (folderIndex != -1)
+                                if (shellItem != null)
                                 {
-                                    ImageFolders[folderIndex] = folder;
-                                }
-                                else
-                                {
-                                    ImageFolders.Add(folder);
-                                }
+                                    shellItem.GetDisplayName(SIGDN.FILESYSPATH, out IntPtr i_result);
+                                    filepath = Marshal.PtrToStringAuto(i_result);
+                                    Marshal.FreeCoTaskMem(i_result);
 
+                                    var folder = new ImageFolder(filepath, 0, true);
+
+                                    DispatcherQueue.TryEnqueue(() => {
+                                        var existingFolder = ImageFolders.FirstOrDefault<ImageFolder>((f) => f.Path == folder.Path);
+                                        var folderIndex = ImageFolders.IndexOf(existingFolder);
+
+                                        if (folderIndex != -1)
+                                        {
+                                            ImageFolders[folderIndex] = folder;
+                                        }
+                                        else
+                                        {
+                                            ImageFolders.Add(folder);
+                                        }
+                                    });
+
+                                    IEnumerable<string> files = GetFolderImages(filepath);
+
+                                    folder.ImageCount = files.Count();
+
+                                    DispatcherQueue.TryEnqueue(() =>
+                                    {
+                                        var existingFolder = ImageFolders.FirstOrDefault<ImageFolder>((f) => f.Path == folder.Path);
+                                        var folderIndex = ImageFolders.IndexOf(existingFolder);
+
+                                        if (folderIndex != -1)
+                                        {
+                                            ImageFolders[folderIndex] = folder;
+                                        }
+                                    });
+                                }
                             }
-                        }
+                        });
                     }
                 }
                 catch (COMException)
@@ -443,7 +463,6 @@ namespace QuickDraw
                         _ = Marshal.FinalReleaseComObject(dialog);
                     }
                 }
-            });
         }
 
         private void AddFoldersButton_Click(object sender, RoutedEventArgs e)
