@@ -16,6 +16,7 @@ using System.Text.Json;
 using Windows.Storage;
 using System.Collections.ObjectModel;
 using System.Text.Json.Serialization;
+using CommunityToolkit.WinUI;
 
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
@@ -75,7 +76,7 @@ namespace QuickDraw
     /// Converts the value of the internal slider into text.
     /// </summary>
     /// <remarks>Internal use only.</remarks>
-    internal class DoubleToEnumConverter : IValueConverter
+    internal partial class DoubleToEnumConverter : IValueConverter
     {
         private readonly Type _enum;
 
@@ -170,6 +171,10 @@ namespace QuickDraw
     /// </summary>
     public sealed partial class MainPage : Page
     {
+        public static bool InvertBool(bool value)
+        {
+            return !value;
+        }
 
         enum TimerEnum
         {
@@ -186,7 +191,6 @@ namespace QuickDraw
         };
 
         public ObservableCollection<ImageFolder> ImageFolders { get; set; }
-
         public class ByWidth : IComparer<TextBlock>
         {
             public int Compare(TextBlock x, TextBlock y)
@@ -202,10 +206,10 @@ namespace QuickDraw
             }
         }
 
-        private readonly SortedSet<TextBlock> _pathTexts = new(new ByWidth());
-        private readonly SortedSet<TextBlock> _imageCountTexts = new(new ByWidth());
-        private readonly HashSet<ColumnDefinition> _pathColumns = new();
-        private readonly HashSet<ColumnDefinition> _imageCountColumns = new();
+        private readonly SortedSet<TextBlock> _pathElems = new(new ByWidth());
+        private readonly SortedSet<TextBlock> _imageCountElems = new(new ByWidth());
+        private readonly HashSet<ColumnDefinition> _pathColumns = [];
+        private readonly HashSet<ColumnDefinition> _imageCountColumns = [];
 
         public double PathColumnWidth { get; set; } = 1000;
         public double ImageCountColumnWidth { get; set; } = 1000;
@@ -238,6 +242,7 @@ namespace QuickDraw
 
             using var stream = await file.OpenStreamForWriteAsync();
             await JsonSerializer.SerializeAsync(stream, ImageFolders);
+            stream.SetLength(stream.Position);
             stream.Dispose();
         }
 
@@ -293,26 +298,27 @@ namespace QuickDraw
             catch
             {
                 // No data or other errors
-                ImageFolders = new();
+                ImageFolders = [];
             }
 
-            this.ImageFolderListView.ItemsSource = ImageFolders;
+            ImageFolderListView.ItemsSource = ImageFolders;
             ImageFolders.CollectionChanged += (sender, e) =>
             {
-                WriteFolders();
+               WriteFolders();
             };
         }
-
+        
         private void UpdateColumnWidths(Grid grid)
         {
-            if (_pathTexts.Count < 1 || _imageCountTexts.Count < 1) { return; }
+            if (_pathElems.Count < 1 || _imageCountElems.Count < 1) { return; }
 
-            ImageCountColumnWidth = _imageCountTexts.Max.ActualWidth + 20;
+            ProgressRing progressRing = _imageCountElems.Max.Parent.FindDescendant<ProgressRing>();
+            ImageCountColumnWidth = Math.Max(_imageCountElems.Max.ActualWidth, progressRing.ActualWidth) + 20;
 
             var gridWidth = grid.ActualWidth;
             var availableWidth = gridWidth - (grid.ColumnDefinitions[3].ActualWidth + ImageCountColumnWidth + 20);
 
-            var maxPathColumnWidth = _pathTexts.Max != null ? _pathTexts.Max.PreWrappedWidth() : 0;
+            var maxPathColumnWidth = _pathElems.Max != null ? _pathElems.Max.PreWrappedWidth() + 1 : 0;
             PathColumnWidth = Math.Max(100, Math.Min(availableWidth, maxPathColumnWidth));
 
             foreach (ColumnDefinition pathColumn in _pathColumns)
@@ -324,39 +330,34 @@ namespace QuickDraw
             {
                 imageCountColumn.Width = new GridLength(ImageCountColumnWidth, GridUnitType.Pixel);
             }
-
         }
 
-        private void PathText_SizeChanged(object sender, SizeChangedEventArgs e)
+        public void HandlePathTextSizeChange(TextBlock pathText)
         {
-            var pathText = (TextBlock)sender;
             var grid = (Grid)pathText.Parent;
 
-            _pathTexts.Remove(pathText);
-            _pathTexts.Add(pathText);
+            _pathElems.Remove(pathText);
+            _pathElems.Add(pathText);
 
             _pathColumns.Add(grid.ColumnDefinitions[0]);
 
             UpdateColumnWidths(grid);
         }
-
-        private void ImageCountText_SizeChanged(object sender, SizeChangedEventArgs e)
+        
+        public void HandleImageCountSizeChange(TextBlock imageCount)
         {
-            var imageCountText = (TextBlock)sender;
-            var grid = (Grid)imageCountText.Parent;
+            var grid = (Grid)imageCount.Parent;
 
-            _imageCountTexts.Remove(imageCountText);
-            _imageCountTexts.Add(imageCountText);
+            _imageCountElems.Remove(imageCount);
+            _imageCountElems.Add(imageCount);
 
             _imageCountColumns.Add(grid.ColumnDefinitions[1]);
 
             UpdateColumnWidths(grid);
         }
 
-        private void Grid_SizeChanged(object sender, SizeChangedEventArgs e)
+        public void HandleGridSizeChange(Grid grid)
         {
-            Grid grid = (Grid)sender;
-
             UpdateColumnWidths(grid);
         }
 
@@ -395,9 +396,8 @@ namespace QuickDraw
                         | FileOpenDialogOptions.AllowMultiSelect
                         | FileOpenDialogOptions.PathMustExist
                     );
-                    _ = dialog.Show(IntPtr.Zero);
+                    _ = dialog.Show(IntPtr.Zero); 
 
-                    // TODO: Handle error when nothing is selected with file selection
                     dialog.GetResults(out IShellItemArray shellItemArray);
 
                     if (shellItemArray != null)
@@ -436,6 +436,7 @@ namespace QuickDraw
                                     IEnumerable<string> files = GetFolderImages(filepath);
 
                                     folder.ImageCount = files.Count();
+                                    folder.IsLoading = false;
 
                                     DispatcherQueue.TryEnqueue(() =>
                                     {

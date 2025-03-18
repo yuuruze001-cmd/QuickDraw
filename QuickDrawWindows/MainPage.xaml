@@ -67,42 +67,9 @@
             <ListView x:Name="ImageFolderListView" Background="{StaticResource CardBackgroundFillColorDefaultBrush}" CornerRadius="6" IsItemClickEnabled="False" CanDragItems="False" CanReorderItems="True" AllowDrop="True" SelectionMode="Multiple" Grid.Row="1" BorderThickness="1" BorderBrush="{StaticResource CardStrokeColorDefaultBrush}" >
                 <ListView.ItemTemplate>
                     <DataTemplate x:DataType="local:ImageFolder">
-                        <Grid SizeChanged="Grid_SizeChanged" Padding="0,8,0,8">
-                            <Grid.Resources>
-                                <StaticResource x:Key="ButtonBackground" ResourceKey="ControlFillColorTransparentBrush" />
-                                <StaticResource x:Key="ButtonBorderBrush" ResourceKey="ControlFillColorTransparentBrush" />
-                            </Grid.Resources>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="Auto" />
-                                <ColumnDefinition Width="Auto" />
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="Auto" />
-                            </Grid.ColumnDefinitions>
-                            <TextBlock x:Name="PathText" TextWrapping="Wrap" VerticalAlignment="Center" Text="{x:Bind Path}" Margin="0,0,0,0" Grid.Column="0" SizeChanged="PathText_SizeChanged"/>
-                            <!-- TODO: Maybe show loading animation when recounting images in folder -->
-                            <TextBlock x:Name="ImageCountText" VerticalAlignment="Center" Text="{x:Bind ImageCount}"  Margin="20,0,0,0" Grid.Column="1" SizeChanged="ImageCountText_SizeChanged"/>
-                            <StackPanel Grid.Column="3" Orientation="Horizontal">
-                                <Button Padding="5,5,5,6" Margin="10,0,0,0">
-                                    <Viewbox Width="16" Height="16">
-                                        <SymbolIcon Symbol="Refresh"/>
-                                    </Viewbox>
-                                </Button>
-                                <Button Padding="5,5,5,6" Margin="10,0,0,0">
-                                    <Viewbox Width="16" Height="16">
-                                        <FontIcon Glyph="&#xE838;" />
-                                    </Viewbox>
-                                </Button>
-                                <Button Padding="5,5,5,6" Margin="10,0,0,0">
-                                    <Viewbox Width="16" Height="16">
-                                        <SymbolIcon Symbol="Delete"/>
-                                    </Viewbox>
-                                </Button>
-                            </StackPanel>
-
-                        </Grid>
+                        <local:MFImageFolderControl Folder="{x:Bind}"/>
                     </DataTemplate>
                 </ListView.ItemTemplate>
-
             </ListView>
 
 
