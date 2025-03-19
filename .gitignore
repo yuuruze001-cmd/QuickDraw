@@ -242,3 +242,4 @@ WebSrc/language-server-log.txt
 **/devlics/*
 *.devlic
 language-server-log.txt
+QuickDrawWindows/Properties/launchSettings.json

@@ -7,6 +7,7 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d"
+    x:Name="Control"
     >
     <Grid x:Name="Root" SizeChanged="Grid_SizeChanged" Padding="0,8,0,8">
 
@@ -46,29 +47,29 @@
                 </VisualState>
             </VisualStateGroup>
         </VisualStateManager.VisualStateGroups>
-        
+
         <Grid.Resources>
             <StaticResource x:Key="ButtonBackground" ResourceKey="ControlFillColorTransparentBrush" />
             <StaticResource x:Key="ButtonBorderBrush" ResourceKey="ControlFillColorTransparentBrush" />
         </Grid.Resources>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="Auto" />
-            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="{Binding Path=DesiredPathColumnWidth, ElementName=Control }" />
+            <ColumnDefinition Width="{Binding Path=DesiredImageCountColumnWidth, ElementName=Control }" />
             <ColumnDefinition Width="*" />
             <ColumnDefinition Width="Auto" />
         </Grid.ColumnDefinitions>
-        <TextBlock x:Name="PathText" TextWrapping="Wrap" VerticalAlignment="Center" Text="{x:Bind Folder.Path, Mode=OneWay}" Margin="0,0,0,0" Grid.Column="0" SizeChanged="PathText_SizeChanged"/>
+        <TextBlock x:Name="PathText" TextWrapping="Wrap" VerticalAlignment="Center" HorizontalAlignment="Left" Text="{x:Bind Folder.Path, Mode=OneWay}" Margin="0,0,0,0" Grid.Column="0" SizeChanged="PathText_SizeChanged"/>
 
-        <ProgressRing x:Name="ImageCountLoadingIndicator" VerticalAlignment="Center" Margin="20,0,0,0" IsActive="True" Grid.Column="1"/>
+        <ProgressRing x:Name="ImageCountLoadingIndicator" VerticalAlignment="Center" Margin="14,0,0,0" IsActive="True" Grid.Column="1"/>
         <TextBlock x:Name="ImageCountText" SizeChanged="ImageCount_SizeChanged" VerticalAlignment="Center" Text="{x:Bind Folder.ImageCount, Mode=OneWay}" Margin="20,0,0,0" Grid.Column="1"/>
 
         <StackPanel Grid.Column="3" Orientation="Horizontal">
-            <Button Padding="5,5,5,6" Margin="10,0,0,0" Click="Button_Click">
+            <Button Padding="5,5,5,6" Margin="10,0,0,0">
                 <Viewbox Width="16" Height="16">
                     <SymbolIcon Symbol="Refresh"/>
                 </Viewbox>
             </Button>
-            <Button Padding="5,5,5,6" Margin="10,0,0,0" Click="Button_Click_1">
+            <Button Padding="5,5,5,6" Margin="10,0,0,0">
                 <Viewbox Width="16" Height="16">
                     <FontIcon Glyph="&#xE838;" />
                 </Viewbox>

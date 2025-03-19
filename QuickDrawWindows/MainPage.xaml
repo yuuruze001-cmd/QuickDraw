@@ -15,8 +15,6 @@
     </Page.Background>
 
     <Page.Resources>
-        <local:GridLengthConverter x:Key="gridLengthConverter" />
-
         <DataTemplate x:Key="TrackLabelTemplate">
             <StackPanel>
                 <TextBlock Text="{Binding Value, Converter={StaticResource doubleToEnumConverter}}"/>
@@ -67,7 +65,7 @@
             <ListView x:Name="ImageFolderListView" Background="{StaticResource CardBackgroundFillColorDefaultBrush}" CornerRadius="6" IsItemClickEnabled="False" CanDragItems="False" CanReorderItems="True" AllowDrop="True" SelectionMode="Multiple" Grid.Row="1" BorderThickness="1" BorderBrush="{StaticResource CardStrokeColorDefaultBrush}" >
                 <ListView.ItemTemplate>
                     <DataTemplate x:DataType="local:ImageFolder">
-                        <local:MFImageFolderControl Folder="{x:Bind}"/>
+                        <local:MFImageFolderControl Folder="{x:Bind}" ColumnWidthChanged="MFImageFolderControl_ColumnWidthChanged" DesiredPathColumnWidth="{Binding ElementName=MainPageElement, Path=DesiredPathColumnWidth}" DesiredImageCountColumnWidth="{Binding ElementName=MainPageElement, Path=DesiredImageCountColumnWidth }"/>
                     </DataTemplate>
                 </ListView.ItemTemplate>
             </ListView>

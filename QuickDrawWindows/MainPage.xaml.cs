@@ -17,6 +17,7 @@ using Windows.Storage;
 using System.Collections.ObjectModel;
 using System.Text.Json.Serialization;
 using CommunityToolkit.WinUI;
+using System.ComponentModel;
 
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
@@ -27,14 +28,11 @@ namespace QuickDraw
     /// Converts the value of the internal slider into text.
     /// </summary>
     /// <remarks>Internal use only.</remarks>
-    internal class StringToEnumConverter : IValueConverter
+    internal partial class StringToEnumConverter : IValueConverter
     {
         private readonly Type _enum;
 
-        public StringToEnumConverter(Type type)
-        {
-            _enum = type;
-        }
+        public StringToEnumConverter(Type type) => _enum = type;
 
         public object Convert(object value,
                 Type targetType,
@@ -148,28 +146,10 @@ namespace QuickDraw
         }
     }
 
-    public class GridLengthConverter : IValueConverter
-    {
-        public object Convert(object value, Type targetType, object parameter, string language)
-        {
-            double val = (double)value;
-            GridLength gridLength = new(val);
-
-            return gridLength;
-        }
-
-        public object ConvertBack(object value, Type targetType, object parameter, string language)
-        {
-            GridLength val = (GridLength)value;
-
-            return val.Value;
-        }
-    }
-
     /// <summary>
     /// An empty page that can be used on its own or navigated to within a Frame.
     /// </summary>
-    public sealed partial class MainPage : Page
+    public sealed partial class MainPage : Page, INotifyPropertyChanged
     {
         public static bool InvertBool(bool value)
         {
@@ -206,18 +186,33 @@ namespace QuickDraw
             }
         }
 
-        private readonly SortedSet<TextBlock> _pathElems = new(new ByWidth());
-        private readonly SortedSet<TextBlock> _imageCountElems = new(new ByWidth());
-        private readonly HashSet<ColumnDefinition> _pathColumns = [];
-        private readonly HashSet<ColumnDefinition> _imageCountColumns = [];
+        private readonly SortedSet<TextBlock> _pathTexts = new(new ByWidth());
+        private readonly SortedSet<TextBlock> _imageCountTexts = new(new ByWidth());
 
-        public double PathColumnWidth { get; set; } = 1000;
-        public double ImageCountColumnWidth { get; set; } = 1000;
+        GridLength _desiredPathColumnWidth = new(0, GridUnitType.Auto);
+        public GridLength DesiredPathColumnWidth
+        {
+            get => _desiredPathColumnWidth;
+            set { 
+                _desiredPathColumnWidth = value;
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(DesiredPathColumnWidth)));
+            }
+        }
+
+        GridLength _desiredImageCountColumnWidth = new(0, GridUnitType.Auto);
+        public GridLength DesiredImageCountColumnWidth
+        {
+            get => _desiredImageCountColumnWidth;
+            set
+            {
+                _desiredImageCountColumnWidth = value;
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(DesiredImageCountColumnWidth)));
+            }
+        }
 
         public MainPage()
         {
             this.InitializeComponent();
-            this.DataContext = this;
             this.Resources.Add("doubleToEnumConverter", new DoubleToEnumConverter(typeof(TimerEnum)));
             this.Resources.Add("stringToEnumConverter", new StringToEnumConverter(typeof(TimerEnum)));
 
@@ -230,6 +225,8 @@ namespace QuickDraw
         }
         Task writeTask;
         Queue<Func<Task>> writeTasksQueue = new();
+
+        public event PropertyChangedEventHandler PropertyChanged;
 
         private async Task _writeFolders()
         {
@@ -310,56 +307,22 @@ namespace QuickDraw
         
         private void UpdateColumnWidths(Grid grid)
         {
-            if (_pathElems.Count < 1 || _imageCountElems.Count < 1) { return; }
+            if (_pathTexts.Count < 1 || _imageCountTexts.Count < 1) { return; }
 
-            ProgressRing progressRing = _imageCountElems.Max.Parent.FindDescendant<ProgressRing>();
-            ImageCountColumnWidth = Math.Max(_imageCountElems.Max.ActualWidth, progressRing.ActualWidth) + 20;
+            ProgressRing progressRing = _imageCountTexts.Max.Parent.FindDescendant<ProgressRing>();
+            var ImageCountColumnWidth = Math.Max(_imageCountTexts.Max.ActualWidth, progressRing.ActualWidth) + 20;
 
             var gridWidth = grid.ActualWidth;
             var availableWidth = gridWidth - (grid.ColumnDefinitions[3].ActualWidth + ImageCountColumnWidth + 20);
 
-            var maxPathColumnWidth = _pathElems.Max != null ? _pathElems.Max.PreWrappedWidth() + 1 : 0;
-            PathColumnWidth = Math.Max(100, Math.Min(availableWidth, maxPathColumnWidth));
+            var maxPathColumnWidth = _pathTexts.Max != null ? _pathTexts.Max.PreWrappedWidth() + 1 : 0;
+            var PathColumnWidth = Math.Max(100, Math.Min(availableWidth, maxPathColumnWidth));
 
-            foreach (ColumnDefinition pathColumn in _pathColumns)
-            {
-                pathColumn.Width = new GridLength(PathColumnWidth, GridUnitType.Pixel);
-            }
-
-            foreach (ColumnDefinition imageCountColumn in _imageCountColumns)
-            {
-                imageCountColumn.Width = new GridLength(ImageCountColumnWidth, GridUnitType.Pixel);
-            }
+            DesiredPathColumnWidth = new GridLength(PathColumnWidth);
+            DesiredImageCountColumnWidth = new GridLength(ImageCountColumnWidth);
         }
 
-        public void HandlePathTextSizeChange(TextBlock pathText)
-        {
-            var grid = (Grid)pathText.Parent;
 
-            _pathElems.Remove(pathText);
-            _pathElems.Add(pathText);
-
-            _pathColumns.Add(grid.ColumnDefinitions[0]);
-
-            UpdateColumnWidths(grid);
-        }
-        
-        public void HandleImageCountSizeChange(TextBlock imageCount)
-        {
-            var grid = (Grid)imageCount.Parent;
-
-            _imageCountElems.Remove(imageCount);
-            _imageCountElems.Add(imageCount);
-
-            _imageCountColumns.Add(grid.ColumnDefinitions[1]);
-
-            UpdateColumnWidths(grid);
-        }
-
-        public void HandleGridSizeChange(Grid grid)
-        {
-            UpdateColumnWidths(grid);
-        }
 
         private void StartButton_Click(object sender, RoutedEventArgs e)
         {
@@ -469,6 +432,29 @@ namespace QuickDraw
         private void AddFoldersButton_Click(object sender, RoutedEventArgs e)
         {
             OpenFolders();
+        }
+
+        private void MFImageFolderControl_ColumnWidthChanged(object sender, MFImageFolderControl.ColumnWidthChangedEventArgs args)
+        {
+            Grid grid = args.columnType == ColumnType.Grid ? sender as Grid : (sender as FrameworkElement).Parent as Grid;
+
+            switch (args.columnType)
+            {
+                case ColumnType.Path:
+                    TextBlock pathText = sender as TextBlock;
+                    _pathTexts.Add(pathText);
+                    break;
+
+                case ColumnType.ImageCount:
+                    TextBlock imageCountText = sender as TextBlock;
+                    _imageCountTexts.Add(imageCountText);
+                    break;
+
+                default:
+                    break;
+            }
+
+            UpdateColumnWidths(grid);
         }
     }
 }

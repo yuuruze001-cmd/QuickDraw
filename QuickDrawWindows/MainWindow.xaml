@@ -15,5 +15,5 @@
         <MicaBackdrop/>
     </winex:WindowEx.SystemBackdrop>
 
-    <Frame x:Name="MainFrame" x:FieldModifier="public"/>
+    <Frame x:Name="MainFrame"/>
 </winex:WindowEx>

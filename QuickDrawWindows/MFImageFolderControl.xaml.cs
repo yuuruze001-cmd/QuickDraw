@@ -1,32 +1,65 @@
 using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Runtime.InteropServices.WindowsRuntime;
-using Windows.Foundation;
-using Windows.Foundation.Collections;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Controls.Primitives;
-using Microsoft.UI.Xaml.Data;
-using Microsoft.UI.Xaml.Input;
-using Microsoft.UI.Xaml.Media;
-using Microsoft.UI.Xaml.Navigation;
-using System.Diagnostics;
-using CommunityToolkit.WinUI;
 
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
 
 namespace QuickDraw
 {
+    public enum ColumnType
+    {
+        Path,
+        ImageCount,
+        Grid
+    }
+
     public sealed partial class MFImageFolderControl : UserControl
     {
+        public class ColumnWidthChangedEventArgs : EventArgs
+        {
+            public ColumnType columnType;
+
+            public ColumnWidthChangedEventArgs(ColumnType columnType) => this.columnType = columnType;
+        }
+        public delegate void ColumnWidthChangedEventHandler(object sender, ColumnWidthChangedEventArgs args);
+
+        public event ColumnWidthChangedEventHandler ColumnWidthChanged;
+
+        public GridLength DesiredPathColumnWidth
+        {
+            get { return (GridLength)GetValue(DesiredPathColumnWidthProperty); }
+            set
+            {
+                SetValue(DesiredPathColumnWidthProperty, value);
+            }
+        }
+
+        public static readonly DependencyProperty DesiredPathColumnWidthProperty = DependencyProperty.Register(
+            nameof(DesiredPathColumnWidth),
+            typeof(GridLength),
+            typeof(MFImageFolderControl),
+            new PropertyMetadata(0.0));
+
+
+        public GridLength DesiredImageCountColumnWidth
+        {
+            get { return (GridLength)GetValue(DesiredImageCountColumnWidthProperty); }
+            set { SetValue(DesiredImageCountColumnWidthProperty, value); }
+        }
+
+        public static readonly DependencyProperty DesiredImageCountColumnWidthProperty = DependencyProperty.Register(
+            nameof(DesiredImageCountColumnWidth),
+            typeof(GridLength),
+            typeof(MFImageFolderControl),
+            new PropertyMetadata(0.0));
+
         public ImageFolder Folder
         {
             get { return (ImageFolder)GetValue(FolderProperty); }
             set { SetValue(FolderProperty, value); }
         }
+
         public static readonly DependencyProperty FolderProperty = DependencyProperty.Register(
             nameof(Folder),
             typeof(ImageFolder),
@@ -41,47 +74,21 @@ namespace QuickDraw
         protected override void OnApplyTemplate()
         {
             base.OnApplyTemplate();
-
-            foreach (VisualStateGroup g in VisualStateManager.GetVisualStateGroups(this))
-            {
-                g.CurrentStateChanging += G_CurrentStateChanging;
-            }
-        }
-
-        private void G_CurrentStateChanging(object sender, VisualStateChangedEventArgs e)
-        {
-            Debug.WriteLine("State Change");
         }
 
         private void PathText_SizeChanged(object sender, SizeChangedEventArgs e)
         {
-            MainPage page = ((Application.Current as App)?.Window as MainWindow)?.MainFrame?.Content as MainPage;
-
-            page?.HandlePathTextSizeChange(sender as TextBlock);
+            ColumnWidthChanged?.Invoke(sender, new(ColumnType.Path));
         }
 
         private void ImageCount_SizeChanged(object sender, SizeChangedEventArgs e)
         {
-            MainPage page = ((Application.Current as App)?.Window as MainWindow)?.MainFrame?.Content as MainPage;
-
-            page?.HandleImageCountSizeChange(sender as TextBlock);
+            ColumnWidthChanged?.Invoke(sender, new(ColumnType.ImageCount));
         }
 
         private void Grid_SizeChanged(object sender, SizeChangedEventArgs e)
         {
-            MainPage page = ((Application.Current as App)?.Window as MainWindow)?.MainFrame?.Content as MainPage;
-            
-            page?.HandleGridSizeChange(sender as Grid);
-        }
-
-        private void Button_Click(object sender, RoutedEventArgs e)
-        {
-            VisualStateManager.GoToState(control: this as Control, "Normal", true);
-        }
-
-        private void Button_Click_1(object sender, RoutedEventArgs e)
-        {
-            VisualStateManager.GoToState(this as Control, "LoadingCount", true);
+            ColumnWidthChanged?.Invoke(sender, new(ColumnType.Grid));
         }
     }
 }
