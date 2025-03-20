@@ -36,42 +36,13 @@
 
         <Grid Padding="24,8,24,24" x:Name="MainGrid" Grid.Row="1" >
             <Grid.RowDefinitions>
-                <RowDefinition Height="Auto" />
                 <RowDefinition Height="*" />
                 <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
 
-            <CommandBar  x:Name="commandBar"  DefaultLabelPosition="Right" VerticalContentAlignment="Center" Grid.Row="0">
-                <AppBarButton Icon="Refresh" Label="Refresh">
-                    <AppBarButton.KeyboardAccelerators>
-                        <KeyboardAccelerator Modifiers="Control" Key="R"/>
-                        <KeyboardAccelerator Key="F5"/>
-                    </AppBarButton.KeyboardAccelerators>
-                </AppBarButton>
-                <AppBarButton x:Name="AddFoldersButton" Icon="Add" Label="Add Folder(s)" Click="AddFoldersButton_Click">
-                    <AppBarButton.KeyboardAccelerators>
-                        <KeyboardAccelerator Modifiers="Control" Key="O"/>
-                    </AppBarButton.KeyboardAccelerators>
-                </AppBarButton>
-                <CommandBar.Content>
-                    <StackPanel Orientation="Horizontal">
-                        <CheckBox Margin="10,0,0,0" MinWidth="0" VerticalAlignment="Center"/>
-                        <TextBlock Text="Select Folder(s)" VerticalAlignment="Center"/>
-                    </StackPanel>
+            <local:MFImageFolderListView x:Name="ImageFolderListView" Grid.Row="0"/>
 
-                </CommandBar.Content>
-            </CommandBar>
-
-            <ListView x:Name="ImageFolderListView" Background="{StaticResource CardBackgroundFillColorDefaultBrush}" CornerRadius="6" IsItemClickEnabled="False" CanDragItems="False" CanReorderItems="True" AllowDrop="True" SelectionMode="Multiple" Grid.Row="1" BorderThickness="1" BorderBrush="{StaticResource CardStrokeColorDefaultBrush}" >
-                <ListView.ItemTemplate>
-                    <DataTemplate x:DataType="local:ImageFolder">
-                        <local:MFImageFolderControl Folder="{x:Bind}" ColumnWidthChanged="MFImageFolderControl_ColumnWidthChanged" DesiredPathColumnWidth="{Binding ElementName=MainPageElement, Path=DesiredPathColumnWidth}" DesiredImageCountColumnWidth="{Binding ElementName=MainPageElement, Path=DesiredImageCountColumnWidth }"/>
-                    </DataTemplate>
-                </ListView.ItemTemplate>
-            </ListView>
-
-
-            <Grid Grid.Row="2" Margin="0,20,0,0">
+            <Grid Grid.Row="1" Margin="0,20,0,0">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="Auto" />
@@ -89,11 +60,9 @@
                      Interval="1"
                      StepFrequency="1"
                      LabelTemplate="{StaticResource TrackLabelTemplate}"
-                     ToolTipTemplate="{StaticResource ToolTipTemplate}"
-                                 >
-                
-    
-                </slider:SfSlider>
+                     ToolTipTemplate="{StaticResource ToolTipTemplate}" />
+
+
                 <!--<RadioButtons Header="Time Per Image" MaxColumns="5" VerticalContentAlignment="Center" Grid.Column="0" VerticalAlignment="Center">
                     <RadioButton Content="30s" MinWidth="0" MinHeight="0"/>
                     <RadioButton Content="1m" MinWidth="0" MinHeight="0"/>

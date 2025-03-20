@@ -32,7 +32,6 @@
   <ItemGroup>
     <None Remove="MainPage.xaml" />
     <None Remove="MainWindow.xaml" />
-    <None Remove="MFImageFolderControl.xaml" />
     <None Remove="SlidePage.xaml" />
   </ItemGroup>
 
@@ -83,7 +82,10 @@
       <Pack>True</Pack>
       <PackagePath>\</PackagePath>
     </None>
-    <Page Update="MFImageFolderControl.xaml">
+    <Page Update="MFImageFolderListView.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Update="MFImageFolderView.xaml">
       <Generator>MSBuild:Compile</Generator>
     </Page>
   </ItemGroup>

@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<UserControl
+    x:Class="QuickDraw.MFImageFolderListView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:QuickDraw"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    x:Name="Control">
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <CommandBar  x:Name="commandBar"  DefaultLabelPosition="Right" VerticalContentAlignment="Center" Grid.Row="0">
+            <AppBarButton Icon="Refresh" Label="Refresh">
+                <AppBarButton.KeyboardAccelerators>
+                    <KeyboardAccelerator Modifiers="Control" Key="R"/>
+                    <KeyboardAccelerator Key="F5"/>
+                </AppBarButton.KeyboardAccelerators>
+            </AppBarButton>
+            <AppBarButton x:Name="AddFoldersButton" Icon="Add" Label="Add Folder(s)" Click="AddFoldersButton_Click">
+                <AppBarButton.KeyboardAccelerators>
+                    <KeyboardAccelerator Modifiers="Control" Key="O"/>
+                </AppBarButton.KeyboardAccelerators>
+            </AppBarButton>
+            <CommandBar.Content>
+                <StackPanel Orientation="Horizontal">
+                    <CheckBox Margin="10,0,0,0" MinWidth="0" VerticalAlignment="Center"/>
+                    <TextBlock Text="Select Folder(s)" VerticalAlignment="Center"/>
+                </StackPanel>
+
+            </CommandBar.Content>
+        </CommandBar>
+
+        <ListView x:Name="ImageFolderListView" ItemsSource="{x:Bind ImageFolderCollection}" Background="{StaticResource CardBackgroundFillColorDefaultBrush}" CornerRadius="6" IsItemClickEnabled="False" CanDragItems="False" CanReorderItems="True" AllowDrop="True" SelectionMode="Multiple" Grid.Row="1" BorderThickness="1" BorderBrush="{StaticResource CardStrokeColorDefaultBrush}" >
+            <ListView.ItemTemplate>
+                <DataTemplate x:DataType="local:Models.MFImageFolder">
+                    <local:MFImageFolderView Folder="{x:Bind}" ColumnWidthChanged="MFImageFolderControl_ColumnWidthChanged" DesiredPathColumnWidth="{Binding ElementName=Control, Path=DesiredPathColumnWidth}" DesiredImageCountColumnWidth="{Binding ElementName=Control, Path=DesiredImageCountColumnWidth }"/>
+                </DataTemplate>
+            </ListView.ItemTemplate>
+        </ListView>
+    </Grid>
+</UserControl>

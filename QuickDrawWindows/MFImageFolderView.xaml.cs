@@ -1,6 +1,7 @@
 using System;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using QuickDraw.Models;
 
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
@@ -14,7 +15,7 @@ namespace QuickDraw
         Grid
     }
 
-    public sealed partial class MFImageFolderControl : UserControl
+    public sealed partial class MFImageFolderView : UserControl
     {
         public class ColumnWidthChangedEventArgs : EventArgs
         {
@@ -38,7 +39,7 @@ namespace QuickDraw
         public static readonly DependencyProperty DesiredPathColumnWidthProperty = DependencyProperty.Register(
             nameof(DesiredPathColumnWidth),
             typeof(GridLength),
-            typeof(MFImageFolderControl),
+            typeof(MFImageFolderView),
             new PropertyMetadata(0.0));
 
 
@@ -51,22 +52,22 @@ namespace QuickDraw
         public static readonly DependencyProperty DesiredImageCountColumnWidthProperty = DependencyProperty.Register(
             nameof(DesiredImageCountColumnWidth),
             typeof(GridLength),
-            typeof(MFImageFolderControl),
+            typeof(MFImageFolderView),
             new PropertyMetadata(0.0));
 
-        public ImageFolder Folder
+        public MFImageFolder Folder
         {
-            get { return (ImageFolder)GetValue(FolderProperty); }
+            get { return (MFImageFolder)GetValue(FolderProperty); }
             set { SetValue(FolderProperty, value); }
         }
 
         public static readonly DependencyProperty FolderProperty = DependencyProperty.Register(
             nameof(Folder),
-            typeof(ImageFolder),
-            typeof(MFImageFolderControl),
+            typeof(MFImageFolder),
+            typeof(MFImageFolderView),
             new PropertyMetadata(null));
 
-        public MFImageFolderControl()
+        public MFImageFolderView()
         {
             this.InitializeComponent();
         }

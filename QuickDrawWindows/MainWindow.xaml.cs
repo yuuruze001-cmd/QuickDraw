@@ -15,8 +15,6 @@ namespace QuickDraw
     /// </summary>
     public sealed partial class MainWindow : WinUIEx.WindowEx
     {
-        public List<string> imagePaths = [];
-
         public MainWindow()
         {
             this.InitializeComponent();

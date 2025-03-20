@@ -11,10 +11,10 @@ using System.Runtime.InteropServices;
 using System.Runtime.CompilerServices;
 using Microsoft.UI.Xaml.Controls;
 
-namespace QuickDraw
+namespace QuickDraw.Utilities
 {
 
-    internal class Utilities
+    internal class MonitorInfo
     {
 
         [DllImport("Shcore.dll", SetLastError = true)]

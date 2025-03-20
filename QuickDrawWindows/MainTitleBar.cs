@@ -3,6 +3,7 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using System;
 using System.Threading.Tasks;
+using QuickDraw.Utilities;
 
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
@@ -53,7 +54,7 @@ namespace QuickDraw
 
         void ApplyInset()
         {
-            var scale = Utilities.GetInvertedScaleAdjustment(m_window);
+            var scale = MonitorInfo.GetInvertedScaleAdjustment(m_window);
 
             m_leftInset = (double)m_titleBar.LeftInset * scale;
             m_rightInset = (double)m_titleBar.RightInset * scale;
@@ -64,7 +65,7 @@ namespace QuickDraw
 
         private void SetDragRegion()
         {
-            double scale = Utilities.GetScaleAdjustment(m_window);
+            double scale = MonitorInfo.GetScaleAdjustment(m_window);
 
             var titleWidth = (GetTemplateChild("TitleColumn") as ColumnDefinition).ActualWidth;
 
