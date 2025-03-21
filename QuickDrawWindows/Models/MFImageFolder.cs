@@ -15,6 +15,8 @@ namespace QuickDraw.Models
         [JsonIgnore]
         public bool IsLoading { get; set; } = false;
 
+        public bool Selected { get; set; } = false;
+
         public MFImageFolder(string path, int imageCount, bool isLoading = false)
         {
             Path = path;

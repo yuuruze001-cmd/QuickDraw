@@ -20,6 +20,8 @@ using CommunityToolkit.WinUI;
 using System.Threading.Tasks;
 using System.Collections.Specialized;
 using QuickDraw.Utilities;
+using System.Diagnostics;
+using WinRT;
 
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
@@ -95,81 +97,81 @@ namespace QuickDraw
         {
             this.InitializeComponent();
 
-            var app = (App.Current as App);
+            var settings = (App.Current as App)?.Settings;
 
-            void UpdateImageFolderCollection()
+            ImageFolderCollection = new MFObservableCollection<MFImageFolder>(settings.ImageFolderList.ImageFolders);
+
+            ImageFolderListView.Loaded += (sender, e) => {
+                foreach (var i in ImageFolderCollection.Index().Where(ft => ft.Item.Selected).Select(ft => ft.Index))
+                {
+                    ImageFolderListView.SelectRange(new(i, 1));
+                }
+
+            };
+
+            ImageFolderCollection.CollectionChanged += (sender, e) => {
+                if ((e as MFNotifyCollectionChangedEventArgs)?.FromModel ?? false)
+                {
+                    return;
+                }
+                switch (e.Action)
+                {
+                    case NotifyCollectionChangedAction.Move:
+                        settings.ImageFolderList.ImageFolders.RemoveRange(0, e.OldItems.Count);
+                        settings.ImageFolderList.ImageFolders.InsertRange(e.NewStartingIndex, e.NewItems.OfType<MFImageFolder>());
+
+                        break;
+                    case NotifyCollectionChangedAction.Remove:
+                        settings.ImageFolderList.ImageFolders.RemoveRange(e.OldStartingIndex, e.OldItems.Count);
+
+                        break;
+
+                    case NotifyCollectionChangedAction.Add:
+                        if (e.NewStartingIndex != -1)
+                        {
+                            settings.ImageFolderList.ImageFolders.InsertRange(e.NewStartingIndex, e.NewItems.OfType<MFImageFolder>());
+                        }
+                        else
+                        {
+                            settings.ImageFolderList.ImageFolders.AddRange(e.NewItems.OfType<MFImageFolder>());
+                        }
+
+                        break;
+                    default:
+                        break;
+                }
+                settings.WriteSettings();
+            };
+
+            settings.ImageFolderList.CollectionChanged += (sender, e) =>
             {
-                ImageFolderCollection = new MFObservableCollection<MFImageFolder>(app.Settings.ImageFolderList.ImageFolders);
-
-                ImageFolderCollection.CollectionChanged += (sender, e) => {
-                    if ((e as MFNotifyCollectionChangedEventArgs)?.FromModel ?? false)
-                    {
-                        return;
-                    }
+                DispatcherQueue.EnqueueAsync(() =>
+                {
+                    var i = 0;
                     switch (e.Action)
                     {
-                        case NotifyCollectionChangedAction.Move:
-                            app.Settings.ImageFolderList.ImageFolders.RemoveRange(0, e.OldItems.Count);
-                            app.Settings.ImageFolderList.ImageFolders.InsertRange(e.NewStartingIndex, e.NewItems.OfType<MFImageFolder>());
-
-                            break;
-                        case NotifyCollectionChangedAction.Remove:
-                            app.Settings.ImageFolderList.ImageFolders.RemoveRange(e.OldStartingIndex, e.OldItems.Count);
-
-                            break;
-
                         case NotifyCollectionChangedAction.Add:
-                            if (e.NewStartingIndex != -1)
+                            i = 0;
+                            foreach (var item in e.NewItems)
                             {
-                                app.Settings.ImageFolderList.ImageFolders.InsertRange(e.NewStartingIndex, e.NewItems.OfType<MFImageFolder>());
-                            } else
-                            {
-                                app.Settings.ImageFolderList.ImageFolders.AddRange(e.NewItems.OfType<MFImageFolder>());
+                                ImageFolderCollection.AddFromModel(item as MFImageFolder);
+                                i++;
                             }
-
-                                break;
+                            break;
+                        case NotifyCollectionChangedAction.Replace:
+                            i = 0;
+                            foreach (var item in e.OldItems)
+                            {
+                                ImageFolderCollection.SetFromModel(e.NewStartingIndex + i, item as MFImageFolder);
+                                i++;
+                            }
+                            break;
                         default:
                             break;
                     }
-                    app.Settings.WriteSettings();
-                };
+                });
 
-                app.Settings.ImageFolderList.CollectionChanged += (sender, e) =>
-                {
-                    DispatcherQueue.EnqueueAsync(() =>
-                    {
-                        var i = 0;
-                        switch (e.Action)
-                        {
-                            case NotifyCollectionChangedAction.Add:
-                                i = 0;
-                                foreach (var item in e.NewItems)
-                                {
-                                    ImageFolderCollection.AddFromModel(item as MFImageFolder);
-                                    i++;
-                                }
-                                break;
-                            case NotifyCollectionChangedAction.Replace:
-                                i = 0;
-                                foreach (var item in e.OldItems)
-                                {
-                                    ImageFolderCollection.SetFromModel(e.NewStartingIndex + i, item as MFImageFolder);
-                                    i++;
-                                }
-                                break;
-                            default:
-                                break;
-                        }
-                    });
-
-                    app.Settings.WriteSettings();
-                };
-            }
-
-            UpdateImageFolderCollection();
-
-            app.Settings.PropertyChanged += (sender, e) => {
-                UpdateImageFolderCollection();
+                settings.WriteSettings();
             };
 
         }
@@ -271,7 +273,87 @@ namespace QuickDraw
 
         private void AddFoldersButton_Click(object sender, RoutedEventArgs e)
         {
+
             OpenFolders();
+            ImageFolderListView.SelectRange(new(0, 1));
+        }
+
+        private void ImageFolderListView_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            var settings = (App.Current as App)?.Settings;
+
+            foreach (var item in e.AddedItems.Cast<MFImageFolder>())
+            {
+                item.Selected = true;
+                var index = ImageFolderCollection.IndexOf(item);
+
+                settings.ImageFolderList.ImageFolders[index].Selected = true;
+            }
+
+            foreach (var item in e.RemovedItems.Cast<MFImageFolder>())
+            {
+                if (ItemsDraggedSelected.Contains(item))
+                {
+                    ImageFolderListView.SelectedItems.Add(item);
+                    continue;
+                }
+                item.Selected = false;
+                var index = ImageFolderCollection.IndexOf(item);
+
+                if (index >= 0)
+                {
+                    settings.ImageFolderList.ImageFolders[index].Selected = false;
+                }
+            }
+
+            settings.WriteSettings();
+        }
+
+        private List<MFImageFolder> ItemsDraggedSelected = [];
+
+        private void ImageFolderListView_DragItemsStarting(object sender, DragItemsStartingEventArgs e)
+        {
+            var items = e.Items.Cast<MFImageFolder>();
+
+            
+
+            var hovereditems = VisualTreeHelper.FindElementsInHostCoordinates(lastPointerPos, ImageFolderListView);
+            var hoveritemelem = hovereditems.First(i => i is ListViewItem);
+            var hoveritem = ImageFolderListView.ItemFromContainer(hoveritemelem as ListViewItem);
+
+            ItemsDraggedSelected.AddRange(items.Where(f => f.Selected));
+
+
+            foreach (var item in items)
+            {
+                if (item != hoveritem)
+                {
+                    var itemelem = ImageFolderListView.ContainerFromItem(item) as ListViewItem;
+
+                    VisualStateManager.GoToState(itemelem, "DragHidden", true);
+                }
+            }
+        }
+
+        private void ImageFolderListView_DragItemsCompleted(ListViewBase sender, DragItemsCompletedEventArgs args)
+        {
+        
+            var items = args.Items.Cast<MFImageFolder>();
+
+            foreach (var item in items)
+            {
+                var itemelem = ImageFolderListView.ContainerFromItem(item) as ListViewItem;
+
+                VisualStateManager.GoToState(itemelem, "DragVisible", true);
+            }
+            ItemsDraggedSelected.Clear();
+        }
+
+        Point lastPointerPos = new();
+
+        private void ImageFolderListView_PointerMoved(object sender, PointerRoutedEventArgs e)
+        {
+            lastPointerPos = e.GetCurrentPoint(null).Position;
         }
     }
 }
