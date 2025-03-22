@@ -116,11 +116,6 @@ namespace QuickDraw
                 }
                 switch (e.Action)
                 {
-                    case NotifyCollectionChangedAction.Move:
-                        settings.ImageFolderList.ImageFolders.RemoveRange(0, e.OldItems.Count);
-                        settings.ImageFolderList.ImageFolders.InsertRange(e.NewStartingIndex, e.NewItems.OfType<MFImageFolder>());
-
-                        break;
                     case NotifyCollectionChangedAction.Remove:
                         settings.ImageFolderList.ImageFolders.RemoveRange(e.OldStartingIndex, e.OldItems.Count);
 
@@ -315,8 +310,6 @@ namespace QuickDraw
         {
             var items = e.Items.Cast<MFImageFolder>();
 
-            
-
             var hovereditems = VisualTreeHelper.FindElementsInHostCoordinates(lastPointerPos, ImageFolderListView);
             var hoveritemelem = hovereditems.First(i => i is ListViewItem);
             var hoveritem = ImageFolderListView.ItemFromContainer(hoveritemelem as ListViewItem);
@@ -331,13 +324,14 @@ namespace QuickDraw
                     var itemelem = ImageFolderListView.ContainerFromItem(item) as ListViewItem;
 
                     VisualStateManager.GoToState(itemelem, "DragHidden", true);
+
+
                 }
             }
         }
 
         private void ImageFolderListView_DragItemsCompleted(ListViewBase sender, DragItemsCompletedEventArgs args)
         {
-        
             var items = args.Items.Cast<MFImageFolder>();
 
             foreach (var item in items)
