@@ -301,6 +301,14 @@ namespace QuickDraw
                 }
             }
 
+            if (ImageFolderListView.SelectedItems.Count == ImageFolderCollection.Count)
+            {
+                SelectAllCheckbox.IsChecked = true;
+            } else
+            {
+                SelectAllCheckbox.IsChecked = false;
+            }
+
             settings.WriteSettings();
         }
 
@@ -348,6 +356,13 @@ namespace QuickDraw
         private void ImageFolderListView_PointerMoved(object sender, PointerRoutedEventArgs e)
         {
             lastPointerPos = e.GetCurrentPoint(null).Position;
+        }
+
+        private void SelectAllCheckbox_Click(object sender, RoutedEventArgs e)
+        {
+            if (SelectAllCheckbox.IsChecked ?? false) { ImageFolderListView.SelectAll(); }
+            else { ImageFolderListView.DeselectAll(); }
+
         }
     }
 }
