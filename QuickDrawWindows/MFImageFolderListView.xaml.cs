@@ -22,6 +22,7 @@ using System.Collections.Specialized;
 using QuickDraw.Utilities;
 using System.Diagnostics;
 using WinRT;
+using System.Collections.Concurrent;
 
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
@@ -363,6 +364,32 @@ namespace QuickDraw
             if (SelectAllCheckbox.IsChecked ?? false) { ImageFolderListView.SelectAll(); }
             else { ImageFolderListView.DeselectAll(); }
 
+        }
+
+        private async Task<IEnumerable<string>> GetSelectedFolders()
+        {
+            return await DispatcherQueue.EnqueueAsync(() =>
+            {
+                return ImageFolderListView.SelectedItems.Cast<MFImageFolder>().Select(f => f.Path).ToList();
+            });
+        }
+
+        public async Task<IEnumerable<string>> GetImages()
+        {
+            IEnumerable<string> folders = await GetSelectedFolders();
+            ConcurrentBag<string> images = [];
+
+            await Parallel.ForEachAsync<string>(folders, async (folder, ct) =>
+            {
+                IEnumerable<string> files = await Filesystem.GetFolderImages(folder);
+
+                foreach (var file in files)
+                {
+                    images.Add(file);
+                }
+            });
+
+            return images;
         }
     }
 }

@@ -24,6 +24,9 @@ namespace QuickDraw.Models
 
         public event PropertyChangedEventHandler PropertyChanged;
 
+        [JsonIgnore]
+        public List<string> SlidePaths { get; set; } = [];
+
         private async Task _writeSettings()
         {
             var appDataPath = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);

@@ -15,26 +15,6 @@ namespace QuickDraw.Models
 
         public event NotifyCollectionChangedEventHandler CollectionChanged;
 
-        private static async Task<IEnumerable<string>> GetFolderImages(string filepath)
-        {
-            return await Task.Run(() =>
-            {
-                var enumerationOptions = new EnumerationOptions
-                {
-                    IgnoreInaccessible = true,
-                    RecurseSubdirectories = true,
-                    AttributesToSkip = System.IO.FileAttributes.Hidden | System.IO.FileAttributes.System | System.IO.FileAttributes.ReparsePoint
-                };
-
-                IEnumerable<string> files = Directory.EnumerateFiles(filepath, "*.*", enumerationOptions)
-                                        .Where(s => s.EndsWith(".jpg", StringComparison.OrdinalIgnoreCase)
-                                                || s.EndsWith(".jpeg", StringComparison.OrdinalIgnoreCase)
-                                                || s.EndsWith(".png", StringComparison.OrdinalIgnoreCase));
-
-                return files;
-            });
-        }
-
         public void AddFolderPath(string path)
         {
             var folder = new MFImageFolder(path, 0, true);
@@ -55,7 +35,7 @@ namespace QuickDraw.Models
 
             Task.Run(async () =>
             {
-                return await GetFolderImages(path);
+                return await Filesystem.GetFolderImages(path);
             }).ContinueWith((t) =>
             {
                 if (t.IsFaulted)
@@ -80,6 +60,7 @@ namespace QuickDraw.Models
 
         public void AddFolderPaths(IEnumerable<string> paths)
         {
+            // TODO: Add paths in order, then load image counts in parallel
             foreach (var path in paths)
             {
                 AddFolderPath(path);

@@ -48,32 +48,7 @@ namespace QuickDraw
         private const int CACHE_SIZE = 9;
         private const int HALF_CACHE_SIZE = CACHE_SIZE / 2;
 
-        private readonly List<string> imagePaths = new()
-        {
-            @"T:\Reference\Image Reference\Poses\Women\00ab97eb3768fe67600e16e4e2f4be28.jpg",
-            @"T:\Reference\Image Reference\Poses\Women\00d8a150d3327954bb6d217c94d93e10.jpg",
-            @"T:\Reference\Image Reference\Poses\Women\0cc5e36c58c975b8f580af6ba9104fc1.jpg",
-
-            @"T:\Reference\Image Reference\Poses\Women\0d44ac6bbc2f76ad0dbd5a6a4e49656f.jpg",
-            @"T:\Reference\Image Reference\Poses\Women\01c3307c28a95405b448f8ba6b55c8c8.jpg",
-            @"T:\Reference\Image Reference\Poses\Women\01d050c898dbdbfc16f8c58984f6cfb0.jpg",
-
-            @"T:\Reference\Image Reference\Poses\Women\01d6068f148122e65c20d71700a172cd.jpg",
-            @"T:\Reference\Image Reference\Poses\Women\0fe196d54935159419d425c96e084839.jpg",
-            @"T:\Reference\Image Reference\Poses\Women\0d43509436a0dea9e92274def74be668.jpg",
-
-            @"T:\Reference\Image Reference\Poses\Women\1b7cebc4eec7b5a8bd7a8eb8cbfc0561.jpg",
-            @"T:\Reference\Image Reference\Poses\Women\1c91b180a9bba47b9af3e9e65f08b6e0.jpg",
-            @"T:\Reference\Image Reference\Poses\Women\1bc1899d6610ed5322316abcf1ca14ea.jpg",
-
-            @"T:\Reference\Image Reference\Poses\Women\0e6817b0c076405a00fb987f4f405eea.jpg",
-            @"T:\Reference\Image Reference\Poses\Women\0e92728c5c2758332a5b141d174b5696.jpg",
-            @"T:\Reference\Image Reference\Poses\Women\0ef896c25863a1a4b1fdf60b901c1fd6.jpg",
-
-            @"T:\Reference\Image Reference\Poses\Women\2c5d9ca90e2bc17a33a15508e5e4cce6.jpg",
-            @"T:\Reference\Image Reference\Poses\Women\2d897822c8ba784742b96fdf39880494.jpg",
-            @"T:\Reference\Image Reference\Poses\Women\2df95b09f17abe50abffc7a1d43e2324.jpg",
-        };
+        private List<string> imagePaths = null;
 
         private readonly LinkedList<CanvasVirtualBitmap> cachedImages = new();
 
@@ -96,11 +71,13 @@ namespace QuickDraw
         {
             this.InitializeComponent();
 
+            imagePaths = (App.Current as App).Settings.SlidePaths;
+
             this.Unloaded += SlidePage_Unloaded;
 
             m_SlideTimer = DispatcherQueue.CreateTimer();
             m_SlideTimer.IsRepeating = true;
-            m_SlideTimer.Interval = new(TimeSpan.TicksPerMillisecond * (long)1000);
+            m_SlideTimer.Interval = new(TimeSpan.TicksPerMillisecond * (long)1);
             m_SlideTimer.Tick += async (sender, e) =>
             {
                 AppTitleBar.Progress = (double)m_TicksElapsed / (double)30;

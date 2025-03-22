@@ -149,10 +149,32 @@ namespace QuickDraw
 
         private void StartButton_Click(object sender, RoutedEventArgs e)
         {
-            (Application.Current as App)?.Window.NavigateToSlideshow();
+            Task.Run(async () => { 
+                return await ImageFolderListView.GetImages();
+            }).ContinueWith(t =>
+            {
+                if (t.IsFaulted)
+                {
+                    // Log
+                } else
+                {
+                    var images = t.Result as IEnumerable<string>; 
+                    if (images.Count() > 0)
+                    {
+                        DispatcherQueue.EnqueueAsync(() =>
+                        {
+
+                            var app = (Application.Current as App);
+                            app.Settings.SlidePaths = [.. images];
+                            app?.Window.NavigateToSlideshow();
+                        });
+                    } else
+                    {
+                        // TODO: Show user error
+                    }
+                    
+                }
+            });
         }
-
-
-
     }
 }
