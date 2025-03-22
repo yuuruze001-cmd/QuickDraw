@@ -77,7 +77,7 @@ namespace QuickDraw
 
             m_SlideTimer = DispatcherQueue.CreateTimer();
             m_SlideTimer.IsRepeating = true;
-            m_SlideTimer.Interval = new(TimeSpan.TicksPerMillisecond * (long)1);
+            m_SlideTimer.Interval = new(TimeSpan.TicksPerMillisecond * (long)1000);
             m_SlideTimer.Tick += async (sender, e) =>
             {
                 AppTitleBar.Progress = (double)m_TicksElapsed / (double)30;
