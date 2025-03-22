@@ -1,5 +1,6 @@
 ﻿using QuickDraw.Utilities;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.IO;
@@ -14,6 +15,43 @@ namespace QuickDraw.Models
         public List<MFImageFolder> ImageFolders { get; set; } = [];
 
         public event NotifyCollectionChangedEventHandler CollectionChanged;
+
+        private static async Task<IEnumerable<string>> GetFolderImages(string filepath)
+        {
+            return await Task.Run(() =>
+            {
+                var enumerationOptions = new EnumerationOptions
+                {
+                    IgnoreInaccessible = true,
+                    RecurseSubdirectories = true,
+                    AttributesToSkip = System.IO.FileAttributes.Hidden | System.IO.FileAttributes.System | System.IO.FileAttributes.ReparsePoint
+                };
+
+                IEnumerable<string> files = Directory.EnumerateFiles(filepath, "*.*", enumerationOptions)
+                                        .Where(s => s.EndsWith(".jpg", StringComparison.OrdinalIgnoreCase)
+                                                || s.EndsWith(".jpeg", StringComparison.OrdinalIgnoreCase)
+                                                || s.EndsWith(".png", StringComparison.OrdinalIgnoreCase));
+
+                return files;
+            });
+        }
+
+        public static async Task<IEnumerable<string>> GetImages(IEnumerable<string> folders)
+        {
+            ConcurrentBag<string> images = [];
+
+            await Parallel.ForEachAsync<string>(folders, async (folder, ct) =>
+            {
+                IEnumerable<string> files = await GetFolderImages(folder);
+
+                foreach (var file in files)
+                {
+                    images.Add(file);
+                }
+            });
+
+            return images;
+        }
 
         public void AddFolderPath(string path)
         {
@@ -35,7 +73,7 @@ namespace QuickDraw.Models
 
             Task.Run(async () =>
             {
-                return await Filesystem.GetFolderImages(path);
+                return await GetFolderImages(path);
             }).ContinueWith((t) =>
             {
                 if (t.IsFaulted)

@@ -366,30 +366,12 @@ namespace QuickDraw
 
         }
 
-        private async Task<IEnumerable<string>> GetSelectedFolders()
+        public async Task<IEnumerable<string>> GetSelectedFolders()
         {
             return await DispatcherQueue.EnqueueAsync(() =>
             {
                 return ImageFolderListView.SelectedItems.Cast<MFImageFolder>().Select(f => f.Path).ToList();
             });
-        }
-
-        public async Task<IEnumerable<string>> GetImages()
-        {
-            IEnumerable<string> folders = await GetSelectedFolders();
-            ConcurrentBag<string> images = [];
-
-            await Parallel.ForEachAsync<string>(folders, async (folder, ct) =>
-            {
-                IEnumerable<string> files = await Filesystem.GetFolderImages(folder);
-
-                foreach (var file in files)
-                {
-                    images.Add(file);
-                }
-            });
-
-            return images;
         }
     }
 }

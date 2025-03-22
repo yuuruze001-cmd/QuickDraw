@@ -150,7 +150,7 @@ namespace QuickDraw
         private void StartButton_Click(object sender, RoutedEventArgs e)
         {
             Task.Run(async () => { 
-                return await ImageFolderListView.GetImages();
+                return await MFImageFolderList.GetImages(await ImageFolderListView.GetSelectedFolders());
             }).ContinueWith(t =>
             {
                 if (t.IsFaulted)
