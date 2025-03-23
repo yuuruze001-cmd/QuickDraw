@@ -20,6 +20,7 @@ using CommunityToolkit.WinUI;
 using System.ComponentModel;
 using Windows.ApplicationModel.Store;
 using QuickDraw.Models;
+using System.Security.Cryptography;
 
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
@@ -120,12 +121,23 @@ namespace QuickDraw
         }
     }
 
+    static class ListShuffleExtension
+    {
+        public static void Shuffle<T>(this IList<T> list)
+        {
+            for (var i = 0; i < list.Count - 1; i++)
+            {
+                var j = RandomNumberGenerator.GetInt32(i + 1, list.Count);
+                (list[i], list[j]) = (list[j], list[i]);
+            }
+        }
+    }
+
     /// <summary>
     /// An empty page that can be used on its own or navigated to within a Frame.
     /// </summary>
     public sealed partial class MainPage : Page
     {
-
         enum TimerEnum
         {
             [Display(Name = "30s")]
@@ -158,14 +170,14 @@ namespace QuickDraw
                     // Log
                 } else
                 {
-                    var images = t.Result as IEnumerable<string>; 
+                    var images = t.Result.ToList(); 
                     if (images.Count() > 0)
                     {
+                        images.Shuffle();
+                        var app = (Application.Current as App);
+                        app.Settings.SlidePaths = [.. images];
                         DispatcherQueue.EnqueueAsync(() =>
                         {
-
-                            var app = (Application.Current as App);
-                            app.Settings.SlidePaths = [.. images];
                             app?.Window.NavigateToSlideshow();
                         });
                     } else
