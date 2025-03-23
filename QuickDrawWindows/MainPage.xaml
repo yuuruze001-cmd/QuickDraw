@@ -47,7 +47,8 @@
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
-                <slider:SfSlider Value="2"
+                <slider:SfSlider 
+                    x:Name="TimerSlider"
                      ShowDividers="True"
                      DividerHeight="10"
                      DividerWidth="10"

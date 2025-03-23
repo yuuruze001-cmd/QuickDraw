@@ -12,6 +12,7 @@ using Microsoft.UI.Xaml.Data;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Navigation;
+using QuickDraw.Models;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -61,9 +62,9 @@ namespace QuickDraw
         private readonly object cachedImagesLock = new();
         private readonly object currentImageNodeLock = new();
 
-        private readonly DispatcherQueueTimer m_SlideTimer;
+        private readonly DispatcherQueueTimer m_SlideTimer = null;
 
-        private int m_TicksElapsed = 0;
+        private uint m_TicksElapsed = 0;
 
         private TaskCompletionSource<bool> imageCacheFilled = new();
 
@@ -71,34 +72,41 @@ namespace QuickDraw
         {
             this.InitializeComponent();
 
-            imagePaths = (App.Current as App).Settings.SlidePaths;
+            var settings = (App.Current as App).Settings;
+            imagePaths = settings.SlidePaths;
+
+            var timerDurationEnum = settings.SlideTimerDuration;
 
             this.Unloaded += SlidePage_Unloaded;
 
-            m_SlideTimer = DispatcherQueue.CreateTimer();
-            m_SlideTimer.IsRepeating = true;
-            m_SlideTimer.Interval = new(TimeSpan.TicksPerMillisecond * (long)1000);
-            m_SlideTimer.Tick += async (sender, e) =>
+            if (timerDurationEnum != TimerEnum.NoLimit)
             {
-                m_TicksElapsed += 1;
-                AppTitleBar.Progress = (double)m_TicksElapsed / (double)5;
-                if (m_TicksElapsed >= 5)
+                var timerDuration = settings.SlideTimerDuration.ToSeconds();
+                m_SlideTimer = DispatcherQueue.CreateTimer();
+                m_SlideTimer.IsRepeating = true;
+                m_SlideTimer.Interval = new(TimeSpan.TicksPerMillisecond * (long)1000);
+                m_SlideTimer.Tick += async (sender, e) =>
                 {
-                    m_TicksElapsed = 0;
+                    m_TicksElapsed += 1;
+                    AppTitleBar.Progress = (double)m_TicksElapsed / (double)timerDuration;
+                    if (m_TicksElapsed >= timerDuration)
+                    {
+                        m_TicksElapsed = 0;
 
-                    await Move(LoadDirection.Forwards);
+                        await Move(LoadDirection.Forwards);
 
-                    await Task.Delay(100);
-                    AppTitleBar.Progress = 0;
-      
-                }
-            };
-            m_SlideTimer.Start();
+                        await Task.Delay(100);
+                        AppTitleBar.Progress = 0;
+
+                    }
+                };
+                m_SlideTimer.Start();
+            }
         }
 
         void SlidePage_Unloaded(object sender, RoutedEventArgs e)
         {
-            this.m_SlideTimer.Stop();
+            this.m_SlideTimer?.Stop();
             this.SlideCanvas.RemoveFromVisualTree();
             this.SlideCanvas = null;
         }
@@ -377,7 +385,7 @@ namespace QuickDraw
         {
             AppTitleBar.Progress = 0;
             m_TicksElapsed = 0;
-            m_SlideTimer.Start();
+            m_SlideTimer?.Start();
             await Move(LoadDirection.Forwards);
         }
 
@@ -385,7 +393,7 @@ namespace QuickDraw
         {
             AppTitleBar.Progress = 0;
             m_TicksElapsed = 0;
-            m_SlideTimer.Start();
+            m_SlideTimer?.Start();
             await Move(LoadDirection.Backwards);
         }
 
@@ -398,16 +406,15 @@ namespace QuickDraw
         private void AppTitleBar_PauseButtonClick(object sender, RoutedEventArgs e)
         {
             
-            if (m_SlideTimer.IsRunning)
+            if (m_SlideTimer?.IsRunning ?? false)
             {
                 m_SlideTimer.Stop();
                 AppTitleBar.IsPaused = true;
             }
             else
             {
-                m_SlideTimer.Start();
+                m_SlideTimer?.Start();
                 AppTitleBar.IsPaused = false;
-
             }
         }
     }

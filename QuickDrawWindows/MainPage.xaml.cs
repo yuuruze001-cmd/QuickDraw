@@ -21,6 +21,7 @@ using System.ComponentModel;
 using Windows.ApplicationModel.Store;
 using QuickDraw.Models;
 using System.Security.Cryptography;
+using Syncfusion.UI.Xaml.Sliders;
 
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
@@ -138,25 +139,21 @@ namespace QuickDraw
     /// </summary>
     public sealed partial class MainPage : Page
     {
-        enum TimerEnum
-        {
-            [Display(Name = "30s")]
-            T30s,
-            [Display(Name = "1m")]
-            T1m,
-            [Display(Name = "2m")]
-            T2m,
-            [Display(Name = "5m")]
-            T5m,
-            [Display(Name = "No Limit")]
-            NoLimit
-        };
-
         public MainPage()
         {
             this.InitializeComponent();
             this.Resources.Add("doubleToEnumConverter", new DoubleToEnumConverter(typeof(TimerEnum)));
             this.Resources.Add("stringToEnumConverter", new StringToEnumConverter(typeof(TimerEnum)));
+
+            TimerSlider.Loaded += TimerSlider_Loaded;
+        }
+
+        private void TimerSlider_Loaded(object sender, RoutedEventArgs e)
+        {
+            var settings = (App.Current as App).Settings;
+            (sender as SfSlider).Value = settings.SlideTimerDuration.ToSliderValue();
+
+            TimerSlider.ValueChanged += TimerSlider_ValueChanged;
         }
 
         private void StartButton_Click(object sender, RoutedEventArgs e)
@@ -187,6 +184,14 @@ namespace QuickDraw
                     
                 }
             });
+        }
+
+        private void TimerSlider_ValueChanged(object sender, SliderValueChangedEventArgs e)
+        {
+            var settings = (App.Current as App)?.Settings;
+
+            settings.SlideTimerDuration = e.NewValue.ToTimerEnum();
+            settings.WriteSettings();
         }
     }
 }

@@ -36,7 +36,7 @@
             </CommandBar.Content>
         </CommandBar>
 
-        <ListView x:Name="ImageFolderListView" PointerMoved="ImageFolderListView_PointerMoved" DragItemsStarting="ImageFolderListView_DragItemsStarting" DragItemsCompleted="ImageFolderListView_DragItemsCompleted" CanDragItems="True" ItemsSource="{x:Bind ImageFolderCollection}" SelectionChanged="ImageFolderListView_SelectionChanged" Background="{StaticResource CardBackgroundFillColorDefaultBrush}" CornerRadius="6" IsItemClickEnabled="False" CanReorderItems="True" AllowDrop="True" SelectionMode="Multiple" Grid.Row="1" BorderThickness="1" BorderBrush="{StaticResource CardStrokeColorDefaultBrush}" >
+        <ListView x:Name="ImageFolderListView" PointerMoved="ImageFolderListView_PointerMoved" DragItemsStarting="ImageFolderListView_DragItemsStarting" DragItemsCompleted="ImageFolderListView_DragItemsCompleted" CanDragItems="True" ItemsSource="{x:Bind ImageFolderCollection}" Background="{StaticResource CardBackgroundFillColorDefaultBrush}" CornerRadius="6" IsItemClickEnabled="False" CanReorderItems="True" AllowDrop="True" SelectionMode="Multiple" Grid.Row="1" BorderThickness="1" BorderBrush="{StaticResource CardStrokeColorDefaultBrush}" >
             <ListView.ItemTemplate>
                 <DataTemplate x:DataType="local:Models.MFImageFolder">
                     <local:MFImageFolderView Folder="{x:Bind}" ColumnWidthChanged="MFImageFolderControl_ColumnWidthChanged" DesiredPathColumnWidth="{Binding ElementName=Control, Path=DesiredPathColumnWidth}" DesiredImageCountColumnWidth="{Binding ElementName=Control, Path=DesiredImageCountColumnWidth }"/>

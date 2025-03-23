@@ -108,6 +108,8 @@ namespace QuickDraw
                     ImageFolderListView.SelectRange(new(i, 1));
                 }
 
+                ImageFolderListView.SelectionChanged += ImageFolderListView_SelectionChanged;
+
             };
 
             ImageFolderCollection.CollectionChanged += (sender, e) => {
