@@ -80,13 +80,16 @@ namespace QuickDraw
             m_SlideTimer.Interval = new(TimeSpan.TicksPerMillisecond * (long)1000);
             m_SlideTimer.Tick += async (sender, e) =>
             {
-                AppTitleBar.Progress = (double)m_TicksElapsed / (double)30;
                 m_TicksElapsed += 1;
-                if (m_TicksElapsed > 30)
+                AppTitleBar.Progress = (double)m_TicksElapsed / (double)5;
+                if (m_TicksElapsed >= 5)
                 {
                     m_TicksElapsed = 0;
 
                     await Move(LoadDirection.Forwards);
+
+                    await Task.Delay(100);
+                    AppTitleBar.Progress = 0;
       
                 }
             };
@@ -372,11 +375,17 @@ namespace QuickDraw
 
         private async void AppTitleBar_NextButtonClick(object sender, RoutedEventArgs e)
         {
+            AppTitleBar.Progress = 0;
+            m_TicksElapsed = 0;
+            m_SlideTimer.Start();
             await Move(LoadDirection.Forwards);
         }
 
         private async void AppTitleBar_PreviousButtonClick(object sender, RoutedEventArgs e)
         {
+            AppTitleBar.Progress = 0;
+            m_TicksElapsed = 0;
+            m_SlideTimer.Start();
             await Move(LoadDirection.Backwards);
         }
 
