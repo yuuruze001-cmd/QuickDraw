@@ -343,6 +343,7 @@ namespace QuickDraw.Utilities
         /// </summary>
         private void OnCollectionChanged(NotifyCollectionChangedAction action, object? item, int index, bool fromModel = false)
         {
+            if (item == null) return;
             OnCollectionChanged(new MFNotifyCollectionChangedEventArgs(action, item, index, fromModel));
         }
 
@@ -351,6 +352,7 @@ namespace QuickDraw.Utilities
         /// </summary>
         private void OnCollectionChanged(NotifyCollectionChangedAction action, object? item, int index, int oldIndex, bool fromModel = false)
         {
+            if (item == null) return;
             OnCollectionChanged(new MFNotifyCollectionChangedEventArgs(action, item, index, oldIndex, fromModel));
         }
 
@@ -359,6 +361,8 @@ namespace QuickDraw.Utilities
         /// </summary>
         private void OnCollectionChanged(NotifyCollectionChangedAction action, object? oldItem, object? newItem, int index, bool fromModel = false)
         {
+            if (oldItem == null || newItem == null) return;
+
             OnCollectionChanged(new MFNotifyCollectionChangedEventArgs(action, newItem, oldItem, index, fromModel));
         }
 

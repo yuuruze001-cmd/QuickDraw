@@ -15,9 +15,9 @@ namespace QuickDraw
     public sealed class MainTitleBar :ContentControl
     {
         //public ColumnDefinition LeftPaddingColumn;
-        AppWindow m_appWindow;
-        MainWindow m_window;
-        AppWindowTitleBar m_titleBar;
+        AppWindow? m_appWindow;
+        MainWindow? m_window;
+        AppWindowTitleBar? m_titleBar;
 
         double m_leftInset = 0;
         double m_rightInset = 0;
@@ -45,8 +45,12 @@ namespace QuickDraw
             var delay = TimeSpan.Parse((string)Application.Current.Resources["ControlFastAnimationDuration"]);
 
             await Task.Delay(delay);
-            m_titleBar.PreferredHeightOption = TitleBarHeightOption.Standard;
-            m_titleBar.IconShowOptions = IconShowOptions.ShowIconAndSystemMenu;
+
+            if (m_titleBar != null)
+            {
+                m_titleBar.PreferredHeightOption = TitleBarHeightOption.Standard;
+                m_titleBar.IconShowOptions = IconShowOptions.ShowIconAndSystemMenu;
+            }
             ApplyInset();
             SetDragRegion();
         }
@@ -54,31 +58,36 @@ namespace QuickDraw
 
         void ApplyInset()
         {
+            if (m_window == null) return;
+
             var scale = MonitorInfo.GetInvertedScaleAdjustment(m_window);
 
-            m_leftInset = (double)m_titleBar.LeftInset * scale;
-            m_rightInset = (double)m_titleBar.RightInset * scale;
+            m_leftInset = (double)(m_titleBar?.LeftInset ?? 0) * scale;
+            m_rightInset = (double)(m_titleBar?.RightInset ?? 0) * scale;
 
-            (GetTemplateChild("LeftInsetColumn") as ColumnDefinition).Width = new GridLength(m_leftInset, GridUnitType.Pixel);
-            (GetTemplateChild("RightInsetColumn") as ColumnDefinition).Width = new GridLength(m_rightInset, GridUnitType.Pixel);
+            if (GetTemplateChild("LeftInsetColumn") is ColumnDefinition colDef)
+            {
+                colDef.Width = new GridLength(m_leftInset, GridUnitType.Pixel);
+                colDef.Width = new GridLength(m_rightInset, GridUnitType.Pixel);
+            }
         }
 
         private void SetDragRegion()
         {
-            double scale = MonitorInfo.GetScaleAdjustment(m_window);
+            double scale = m_window != null ? MonitorInfo.GetScaleAdjustment(m_window) : 1.0;
 
-            var titleWidth = (GetTemplateChild("TitleColumn") as ColumnDefinition).ActualWidth;
+            var titleWidth = (GetTemplateChild("TitleColumn") as ColumnDefinition)?.ActualWidth;
 
             Windows.Graphics.RectInt32 dragRect = new(
                 (int)(m_leftInset * scale),
                 0,
-                (int)(titleWidth * scale),
+                (int)(titleWidth ?? 0.0 * scale),
                 (int)(this.ActualHeight * scale)
             );
 
             Windows.Graphics.RectInt32[] dragRects = { dragRect };
 
-            m_titleBar.SetDragRectangles(dragRects);
+            m_titleBar?.SetDragRectangles(dragRects);
         }
 
         private void TitleBar_SizeChanged(object sender, SizeChangedEventArgs e)

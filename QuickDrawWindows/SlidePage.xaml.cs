@@ -49,20 +49,20 @@ namespace QuickDraw
         private const int CACHE_SIZE = 9;
         private const int HALF_CACHE_SIZE = CACHE_SIZE / 2;
 
-        private List<string> imagePaths = null;
+        private List<string>? imagePaths = null;
 
         private readonly LinkedList<CanvasVirtualBitmap> cachedImages = new();
 
-        private LinkedListNode<CanvasVirtualBitmap> currentImageNode = null;
+        private LinkedListNode<CanvasVirtualBitmap>? currentImageNode = null;
         private int imageCachePosition = 0;
-        private Task imageLoadTask;
+        private Task? imageLoadTask;
 
         private bool grayscale = false;
 
         private readonly object cachedImagesLock = new();
         private readonly object currentImageNodeLock = new();
 
-        private readonly DispatcherQueueTimer m_SlideTimer = null;
+        private readonly DispatcherQueueTimer? m_SlideTimer = null;
 
         private uint m_TicksElapsed = 0;
 
@@ -72,16 +72,16 @@ namespace QuickDraw
         {
             this.InitializeComponent();
 
-            var settings = (App.Current as App).Settings;
-            imagePaths = settings.SlidePaths;
+            var settings = (App.Current as App)?.Settings;
+            imagePaths = settings?.SlidePaths;
 
-            var timerDurationEnum = settings.SlideTimerDuration;
+            var timerDurationEnum = settings?.SlideTimerDuration ?? TimerEnum.NoLimit;
 
             this.Unloaded += SlidePage_Unloaded;
 
             if (timerDurationEnum != TimerEnum.NoLimit)
             {
-                var timerDuration = settings.SlideTimerDuration.ToSeconds();
+                var timerDuration = timerDurationEnum.ToSeconds();
                 m_SlideTimer = DispatcherQueue.CreateTimer();
                 m_SlideTimer.IsRepeating = true;
                 m_SlideTimer.Interval = new(TimeSpan.TicksPerMillisecond * (long)1000);
@@ -123,56 +123,60 @@ namespace QuickDraw
 
             if (!isCurrentImageNull)
             {
-                CanvasVirtualBitmap bitmap;
+                CanvasVirtualBitmap? bitmap;
 
                 lock (currentImageNodeLock)
                 {
-                    bitmap = currentImageNode.Value;
+                    bitmap = currentImageNode?.Value;
                 }
 
-                Size canvasSize = new(sender.ActualWidth, sender.ActualHeight);
-                double canvasAspect = canvasSize.Width / canvasSize.Height;
-                double bitmapAspect = bitmap.Bounds.Width / bitmap.Bounds.Height;
-                Size imageRenderSize;
-                Point imagePos;
-
-                if (bitmapAspect > canvasAspect)
+                if (bitmap != null)
                 {
-                    imageRenderSize = new Size(
-                        canvasSize.Width,
-                        canvasSize.Width / bitmapAspect
-                    );
-                    imagePos = new Point(0, (canvasSize.Height - imageRenderSize.Height) / 2);
-                }
-                else
-                {
-                    imageRenderSize = new Size(
-                        canvasSize.Height * bitmapAspect,
-                        canvasSize.Height
-                    );
-                    imagePos = new Point((canvasSize.Width - imageRenderSize.Width) / 2, 0);
 
-                }
+                    Size canvasSize = new(sender.ActualWidth, sender.ActualHeight);
+                    double canvasAspect = canvasSize.Width / canvasSize.Height;
+                    double bitmapAspect = (bitmap?.Bounds.Width ?? 1.0) / (bitmap?.Bounds.Height ?? 1.0);
+                    Size imageRenderSize;
+                    Point imagePos;
 
-                CanvasCommandList cl = new(sender);
-
-                using (CanvasDrawingSession clds = cl.CreateDrawingSession())
-                {
-                    clds.DrawImage(bitmap, new Rect(imagePos, imageRenderSize), bitmap.Bounds);
-                }
-
-                if (grayscale)
-                {
-                    GrayscaleEffect grayscale = new()
+                    if (bitmapAspect > canvasAspect)
                     {
-                        Source = bitmap
-                    };
-                    args.DrawingSession.DrawImage(grayscale, new Rect(imagePos, imageRenderSize), bitmap.Bounds);
-                } else
-                {
-                    args.DrawingSession.DrawImage(cl);
-                }
+                        imageRenderSize = new Size(
+                            canvasSize.Width,
+                            canvasSize.Width / bitmapAspect
+                        );
+                        imagePos = new Point(0, (canvasSize.Height - imageRenderSize.Height) / 2);
+                    }
+                    else
+                    {
+                        imageRenderSize = new Size(
+                            canvasSize.Height * bitmapAspect,
+                            canvasSize.Height
+                        );
+                        imagePos = new Point((canvasSize.Width - imageRenderSize.Width) / 2, 0);
 
+                    }
+
+                    CanvasCommandList cl = new(sender);
+
+                    using (CanvasDrawingSession clds = cl.CreateDrawingSession())
+                    {
+                        clds.DrawImage(bitmap, new Rect(imagePos, imageRenderSize), bitmap?.Bounds ?? new Rect());
+                    }
+
+                    if (grayscale)
+                    {
+                        GrayscaleEffect grayscale = new()
+                        {
+                            Source = bitmap
+                        };
+                        args.DrawingSession.DrawImage(grayscale, new Rect(imagePos, imageRenderSize), bitmap?.Bounds ?? new Rect());
+                    }
+                    else
+                    {
+                        args.DrawingSession.DrawImage(cl);
+                    }
+                }
             }
         }
 
@@ -192,6 +196,11 @@ namespace QuickDraw
 
         private async Task FillImageCacheAsync(CanvasControl resourceCreator, int index)
         {
+            if (imagePaths == null)
+            {
+                // TODO: Log
+                return;
+            }
             var bitmap = await CanvasVirtualBitmap.LoadAsync(resourceCreator, imagePaths[index]);
 
             lock (currentImageNodeLock)
@@ -315,10 +324,10 @@ namespace QuickDraw
             var imageIndex = 0;
             lock (cachedImagesLock)
             {
-                imageIndex = Mod(imageCachePosition + increment + halfCache, imagePaths.Count);
+                imageIndex = Mod(imageCachePosition + increment + halfCache, imagePaths?.Count ?? 0);
             }
 
-            var bitmap = await CanvasVirtualBitmap.LoadAsync(resourceCreator, imagePaths[imageIndex]);
+            var bitmap = await CanvasVirtualBitmap.LoadAsync(resourceCreator, imagePaths?[imageIndex]);
 
             lock (cachedImagesLock)
             {
@@ -328,8 +337,8 @@ namespace QuickDraw
                         {
                             cachedImages.AddFirst(bitmap);
 
-                            cachedImages.Last.Value.Dispose();
-                            cachedImages.RemoveLast();
+                            cachedImages?.Last?.Value.Dispose();
+                            cachedImages?.RemoveLast();
                         }
                         break;
 
@@ -337,13 +346,13 @@ namespace QuickDraw
                         {
                             cachedImages.AddLast(bitmap);
 
-                            cachedImages.First.Value.Dispose();
-                            cachedImages.RemoveFirst();
+                            cachedImages?.First?.Value.Dispose();
+                            cachedImages?.RemoveFirst();
                         }
                         break;
                 }
 
-                imageCachePosition = Mod(imageCachePosition + increment, imagePaths.Count);
+                imageCachePosition = Mod(imageCachePosition + increment, imagePaths?.Count ?? 0);
             }
         }
 
@@ -351,18 +360,18 @@ namespace QuickDraw
         {
             await imageCacheFilled.Task;
 
-            if (imagePaths.Count > CACHE_SIZE)
+            if ((imagePaths?.Count ?? 0) > CACHE_SIZE)
             {
                 await UpdateImageAsync(this.SlideCanvas, direction);
             }
 
-            if (imagePaths.Count <= CACHE_SIZE)
+            if (imagePaths?.Count <= CACHE_SIZE)
             {
                 lock (currentImageNodeLock)
                 {
                     currentImageNode = direction == LoadDirection.Forwards ?
-                    (currentImageNode.Next ?? cachedImages.First) :
-                    (currentImageNode.Previous ?? cachedImages.Last);
+                    (currentImageNode?.Next ?? cachedImages.First) :
+                    (currentImageNode?.Previous ?? cachedImages.Last);
                 }
             }
             else
@@ -370,15 +379,12 @@ namespace QuickDraw
                 lock (currentImageNodeLock)
                 {
                     currentImageNode = direction == LoadDirection.Forwards ?
-                    currentImageNode.Next :
-                    currentImageNode.Previous;
+                    currentImageNode?.Next :
+                    currentImageNode?.Previous;
                 }
             }
 
-            if (SlideCanvas != null)
-            {
-                SlideCanvas.Invalidate();
-            }
+            SlideCanvas?.Invalidate();
         }
 
         private async void AppTitleBar_NextButtonClick(object sender, RoutedEventArgs e)

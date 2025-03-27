@@ -25,7 +25,7 @@ namespace QuickDraw.Models
             PropertyInfo[] toObjectProperties = toObject.GetType().GetProperties();
             foreach (PropertyInfo propTo in toObjectProperties)
             {
-                PropertyInfo propFrom = fromObject.GetType().GetProperty(propTo.Name);
+                PropertyInfo? propFrom = fromObject.GetType().GetProperty(propTo.Name);
                 if (propFrom != null && propFrom.CanWrite)
                     propTo.SetValue(toObject, propFrom.GetValue(fromObject, null), null);
             }
@@ -79,11 +79,11 @@ namespace QuickDraw.Models
         public MFImageFolderList ImageFolderList { get; set; } = new MFImageFolderList();
 
         [JsonIgnore]
-        private Task writeTask;
+        private Task? writeTask;
         [JsonIgnore]
         private Queue<Func<Task>> writeTasksQueue = new();
 
-        public event PropertyChangedEventHandler PropertyChanged;
+        public event PropertyChangedEventHandler? PropertyChanged;
 
         [JsonIgnore]
         public List<string> SlidePaths { get; set; } = [];
@@ -100,7 +100,7 @@ namespace QuickDraw.Models
 
             var qdDataFolder = await appDataFolder.CreateFolderAsync("MFDigitalMedia.QuickDraw", CreationCollisionOption.OpenIfExists);
 
-            var file = await qdDataFolder.CreateFileAsync("settings.json", Windows.Storage.CreationCollisionOption.OpenIfExists);
+            var file = await qdDataFolder.CreateFileAsync("settings.json", CreationCollisionOption.OpenIfExists);
 
             using var stream = await file.OpenStreamForWriteAsync();
             await JsonSerializer.SerializeAsync(stream, this);
@@ -154,11 +154,11 @@ namespace QuickDraw.Models
 
                 var qdDataFolder = await appDataFolder.CreateFolderAsync("MFDigitalMedia.QuickDraw", CreationCollisionOption.OpenIfExists);
 
-                MFSettings newSettings = new();
+                MFSettings? newSettings = new();
 
                 try
                 {
-                    var file = await qdDataFolder.CreateFileAsync("settings.json", Windows.Storage.CreationCollisionOption.OpenIfExists);
+                    var file = await qdDataFolder.CreateFileAsync("settings.json", CreationCollisionOption.OpenIfExists);
 
                     using var stream = await file.OpenStreamForReadAsync();
 
@@ -174,7 +174,7 @@ namespace QuickDraw.Models
                     // Other errors
                 }
 
-                newSettings.CopyPropertiesTo(this);
+                newSettings?.CopyPropertiesTo(this);
             });
         }
     }

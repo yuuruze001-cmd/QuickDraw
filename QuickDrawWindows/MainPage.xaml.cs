@@ -38,7 +38,7 @@ namespace QuickDraw
 
         public StringToEnumConverter(Type type) => _enum = type;
 
-        public object Convert(object value,
+        public object? Convert(object value,
                 Type targetType,
                 object parameter,
                 string language)
@@ -54,7 +54,7 @@ namespace QuickDraw
                 return _name;
             }
 
-            var _attr = (DisplayAttribute)_member
+            var _attr = (DisplayAttribute?)_member
                 .GetCustomAttribute(typeof(DisplayAttribute));
             if (_attr == null)
             {
@@ -87,7 +87,7 @@ namespace QuickDraw
             _enum = type;
         }
 
-        public object Convert(object value,
+        public object? Convert(object value,
                 Type targetType,
                 object parameter,
                 string language)
@@ -103,7 +103,7 @@ namespace QuickDraw
                 return _name;
             }
 
-            var _attr = (DisplayAttribute)_member
+            var _attr = (DisplayAttribute?)_member
                 .GetCustomAttribute(typeof(DisplayAttribute));
             if (_attr == null)
             {
@@ -150,8 +150,11 @@ namespace QuickDraw
 
         private void TimerSlider_Loaded(object sender, RoutedEventArgs e)
         {
-            var settings = (App.Current as App).Settings;
-            (sender as SfSlider).Value = settings.SlideTimerDuration.ToSliderValue();
+            var settings = (App.Current as App)?.Settings;
+            if (sender is SfSlider slider)
+            {
+                slider.Value = settings?.SlideTimerDuration.ToSliderValue() ?? 120.0;
+            }
 
             TimerSlider.ValueChanged += TimerSlider_ValueChanged;
         }
@@ -171,27 +174,31 @@ namespace QuickDraw
                     if (images.Count() > 0)
                     {
                         images.Shuffle();
-                        var app = (Application.Current as App);
-                        app.Settings.SlidePaths = [.. images];
-                        DispatcherQueue.EnqueueAsync(() =>
+                        if (App.Current is App app)
                         {
-                            App.Window.NavigateToSlideshow();
-                        });
+                            app.Settings.SlidePaths = [.. images];
+                            DispatcherQueue.EnqueueAsync(() =>
+                            {
+                                App.Window.NavigateToSlideshow();
+                            });
+                        }
                     } else
                     {
                         // TODO: Show user error
                     }
-                    
                 }
             });
         }
 
-        private void TimerSlider_ValueChanged(object sender, SliderValueChangedEventArgs e)
+        private void TimerSlider_ValueChanged(object? sender, SliderValueChangedEventArgs e)
         {
             var settings = (App.Current as App)?.Settings;
 
-            settings.SlideTimerDuration = e.NewValue.ToTimerEnum();
-            settings.WriteSettings();
+            if (settings != null)
+            {
+                settings.SlideTimerDuration = e.NewValue.ToTimerEnum();
+                settings.WriteSettings();
+            }
         }
     }
 }

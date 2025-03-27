@@ -19,26 +19,26 @@ namespace QuickDraw
     public sealed class SlideTitleBar : ContentControl
     {
         
-        AppWindow m_appWindow;
-        MainWindow m_window;
-        AppWindowTitleBar m_titleBar;
+        AppWindow? m_appWindow;
+        MainWindow? m_window;
+        AppWindowTitleBar? m_titleBar;
 
         double m_leftInset = 0;
         double m_rightInset = 0;
 
-        public event RoutedEventHandler NextButtonClick;
-        public event RoutedEventHandler PreviousButtonClick;
-        public event RoutedEventHandler GrayscaleButtonClick;
-        public event RoutedEventHandler PauseButtonClick;
+        public event RoutedEventHandler? NextButtonClick;
+        public event RoutedEventHandler? PreviousButtonClick;
+        public event RoutedEventHandler? GrayscaleButtonClick;
+        public event RoutedEventHandler? PauseButtonClick;
 
         private double progress = 0;
         public double Progress
         {
             get => progress;
             set {
-                if (this.IsLoaded)
+                if (IsLoaded && GetTemplateChild("ProgressBar") is ProgressBar progressBar)
                 {
-                    (GetTemplateChild("ProgressBar") as ProgressBar).Value = value * 100;
+                    progressBar.Value = value * 100;
                 }
                 progress = value; 
             }
@@ -54,13 +54,15 @@ namespace QuickDraw
                 if (IsLoaded)
                 {
                     var button = (GetTemplateChild("PauseButton") as Button);
-                    var icon = button.FindDescendant<SymbolIcon>();
+                    var icon = button?.FindDescendant<SymbolIcon>();
 
-                    icon.Symbol = m_paused ? Symbol.Play : Symbol.Pause;
+                    if (icon != null)
+                    {
+                        icon.Symbol = m_paused ? Symbol.Play : Symbol.Pause;
+                    }
                 }
             }
         }
-
 
         public SlideTitleBar()
         {
@@ -93,16 +95,33 @@ namespace QuickDraw
             m_appWindow = m_window.AppWindow;
             m_titleBar = m_appWindow.TitleBar;
 
-            this.Unloaded += SlideTitleBar_Unloaded;
+            Unloaded += SlideTitleBar_Unloaded;
 
-            this.SizeChanged += TitleBar_SizeChanged;
+            SizeChanged += TitleBar_SizeChanged;
 
-            (GetTemplateChild("NextButton") as Button).Click += NextButton_Click;
-            (GetTemplateChild("PreviousButton") as Button).Click += PreviousButton_Click;
-            (GetTemplateChild("GrayscaleButton") as Button).Click += GrayscaleButton_Click;
-            (GetTemplateChild("PauseButton") as Button).Click += PauseButton_Click;
+            if (GetTemplateChild("NextButton") is Button nextButton)
+            {
+                nextButton.Click += NextButton_Click;
+            }
 
-            (GetTemplateChild("BackButton") as Button).Click += SlideTitleBar_BackClick;
+            if (GetTemplateChild("PreviousButton") is Button previousButton)
+            {
+                previousButton.Click += PreviousButton_Click;
+            }
+
+            if (GetTemplateChild("GrayscaleButton") is Button grayscaleButton)
+            {
+                grayscaleButton.Click += GrayscaleButton_Click;
+            }
+
+            if (GetTemplateChild("PauseButton") is Button pauseButton )
+            {
+                pauseButton.Click += PauseButton_Click;
+            }
+
+            if (GetTemplateChild("BackButton") is Button backButton) {
+                backButton.Click += SlideTitleBar_BackClick;
+            }
 
             _ = AdjustLayout();
         }
@@ -112,32 +131,46 @@ namespace QuickDraw
             var delay = TimeSpan.Parse((string)Application.Current.Resources["ControlFastAnimationDuration"]);
 
             await Task.Delay(delay);
-            m_titleBar.PreferredHeightOption = TitleBarHeightOption.Tall;
-            m_titleBar.IconShowOptions = IconShowOptions.HideIconAndSystemMenu;
+            if (m_titleBar != null)
+            {
+                m_titleBar.PreferredHeightOption = TitleBarHeightOption.Tall;
+                m_titleBar.IconShowOptions = IconShowOptions.HideIconAndSystemMenu;
+            }
             ApplyInset();
             SetDragRegion();
         }
 
         void ApplyInset()
         {
+            if (m_window == null) return;
+
             var scale = MonitorInfo.GetInvertedScaleAdjustment(m_window);
 
-            m_leftInset = (double)m_titleBar.LeftInset * scale;
-            m_rightInset = (double)m_titleBar.RightInset * scale;
+            m_leftInset = (double)(m_titleBar?.LeftInset ?? 0) * scale;
+            m_rightInset = (double)(m_titleBar?.RightInset ?? 0) * scale;
 
-            (GetTemplateChild("LeftInsetColumn") as ColumnDefinition).Width = new GridLength(m_leftInset, GridUnitType.Pixel);
-            (GetTemplateChild("RightInsetColumn") as ColumnDefinition).Width = new GridLength(m_rightInset, GridUnitType.Pixel);
+            if (GetTemplateChild("LeftInsetColumn") is ColumnDefinition leftInsetColumn)
+            {
+                leftInsetColumn.Width = new GridLength(m_leftInset, GridUnitType.Pixel);
+            }
+
+            if (GetTemplateChild("RightInsetColumn") is ColumnDefinition rightInsetColumn)
+            {
+                rightInsetColumn.Width = new GridLength(m_rightInset, GridUnitType.Pixel);
+            }
 
             // TODO: set min widths of the centering columns, store it for the drag region
         }
 
         private void SetDragRegion()
         {
+            if (m_window == null) return;
+
             double scale = MonitorInfo.GetScaleAdjustment(m_window);
 
-            var backWidth = (GetTemplateChild("BackColumn") as ColumnDefinition).ActualWidth;
-            var centerLeftWidth = (GetTemplateChild("CenterLeftColumn") as ColumnDefinition).ActualWidth;
-            var centerRightWidth = (GetTemplateChild("CenterRightColumn") as ColumnDefinition).ActualWidth;
+            var backWidth = (GetTemplateChild("BackColumn") as ColumnDefinition)?.ActualWidth ?? 0;
+            var centerLeftWidth = (GetTemplateChild("CenterLeftColumn") as ColumnDefinition)?.ActualWidth ?? 0;
+            var centerRightWidth = (GetTemplateChild("CenterRightColumn") as ColumnDefinition)?.ActualWidth ?? 0;
 
             List<Windows.Graphics.RectInt32> dragRectsList = new();
 
@@ -162,7 +195,7 @@ namespace QuickDraw
 
             Windows.Graphics.RectInt32[] dragRects = dragRectsList.ToArray();
 
-            m_titleBar.SetDragRectangles(dragRects);
+            m_titleBar?.SetDragRectangles(dragRects);
         }
 
         private void TitleBar_SizeChanged(object sender, SizeChangedEventArgs e)
@@ -179,7 +212,7 @@ namespace QuickDraw
 
         void SlideTitleBar_BackClick(object sender, RoutedEventArgs e)
         {
-            m_window.NavigateToMain();
+            m_window?.NavigateToMain();
         }
     }
 }

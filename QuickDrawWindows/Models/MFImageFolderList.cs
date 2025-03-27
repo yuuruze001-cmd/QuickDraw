@@ -14,7 +14,7 @@ namespace QuickDraw.Models
     {
         public List<MFImageFolder> ImageFolders { get; set; } = [];
 
-        public event NotifyCollectionChangedEventHandler CollectionChanged;
+        public event NotifyCollectionChangedEventHandler? CollectionChanged;
 
         private static async Task<IEnumerable<string>> GetFolderImages(string filepath)
         {
@@ -58,7 +58,7 @@ namespace QuickDraw.Models
             var folder = new MFImageFolder(path, 0, true);
 
             var existingFolder = ImageFolders.FirstOrDefault<MFImageFolder>((f) => f.Path == folder.Path);
-            var folderIndex = ImageFolders.IndexOf(existingFolder);
+            var folderIndex = existingFolder != null ? ImageFolders.IndexOf(existingFolder) : -1;
 
             if (folderIndex != -1)
             {
@@ -85,7 +85,7 @@ namespace QuickDraw.Models
                     folder.IsLoading = false;
 
                     existingFolder = ImageFolders.FirstOrDefault<MFImageFolder>((f) => f.Path == folder.Path);
-                    folderIndex = ImageFolders.IndexOf(existingFolder);
+                    folderIndex = existingFolder != null ? ImageFolders.IndexOf(existingFolder) : -1;
 
                     if (folderIndex != -1)
                     {

@@ -4,6 +4,7 @@ using CommunityToolkit.WinUI;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using QuickDraw.Models;
+using Windows.System;
 
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
@@ -27,7 +28,7 @@ namespace QuickDraw
         }
         public delegate void ColumnWidthChangedEventHandler(object sender, ColumnWidthChangedEventArgs args);
 
-        public event ColumnWidthChangedEventHandler ColumnWidthChanged;
+        public event ColumnWidthChangedEventHandler? ColumnWidthChanged;
 
         public class ColumnDataRemoveEventArgs: EventArgs
         {
@@ -43,7 +44,7 @@ namespace QuickDraw
 
         public delegate void ColumnDataRemoveEventHandler(object sender, ColumnDataRemoveEventArgs args);
 
-        public event ColumnDataRemoveEventHandler ColumnDataRemove;
+        public event ColumnDataRemoveEventHandler? ColumnDataRemove;
 
         public GridLength DesiredPathColumnWidth
         {
@@ -123,7 +124,7 @@ namespace QuickDraw
 
         private void Folder_Click(object sender, RoutedEventArgs e)
         {
-
+            //Launcher.LaunchFolderPathAsync(path);
         }
 
         private void Delete_Click(object sender, RoutedEventArgs e)
@@ -133,9 +134,9 @@ namespace QuickDraw
 
             if (i != -1)
             {
-                var settings = (App.Current as App).Settings;
-                settings.ImageFolderList.RemoveFolderAt(i);
-                settings.WriteSettings();
+                var settings = (App.Current as App)?.Settings;
+                settings?.ImageFolderList.RemoveFolderAt(i);
+                settings?.WriteSettings();
             }
         }
     }

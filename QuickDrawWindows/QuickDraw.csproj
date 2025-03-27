@@ -28,6 +28,7 @@
 	<ApplicationIcon>Assets\QuickDraw.ico</ApplicationIcon>
 	<ApplicationManifest>app.manifest</ApplicationManifest>
 	<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <Nullable>enable</Nullable>
   </PropertyGroup>
   <ItemGroup>
     <None Remove="MainPage.xaml" />

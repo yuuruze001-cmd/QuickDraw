@@ -42,8 +42,13 @@ namespace QuickDraw
 #if DEBUG
             try
             {
-                var syncfusionKey = System.IO.File.ReadAllText(Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), @"..\..\..\..\..\devlics\syncfusion.devlic"));
-                Syncfusion.Licensing.SyncfusionLicenseProvider.RegisterLicense(syncfusionKey);
+                var executingAssemblyPath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+
+                if (executingAssemblyPath != null)
+                {
+                    var syncfusionKey = System.IO.File.ReadAllText(Path.Combine(executingAssemblyPath, @"..\..\..\..\..\devlics\syncfusion.devlic"));
+                    Syncfusion.Licensing.SyncfusionLicenseProvider.RegisterLicense(syncfusionKey);
+                }
             }
             catch { };
 #else
