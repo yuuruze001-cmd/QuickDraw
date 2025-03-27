@@ -39,21 +39,31 @@ namespace QuickDraw
         /// </summary>
         public App()
         {
-#if DEBUG
             try
             {
-                var executingAssemblyPath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+                string resourceName = "syncfusion.devlic";
 
-                if (executingAssemblyPath != null)
+                Assembly assembly = Assembly.GetExecutingAssembly();
+
+                if (assembly != null)
                 {
-                    var syncfusionKey = System.IO.File.ReadAllText(Path.Combine(executingAssemblyPath, @"..\..\..\..\..\devlics\syncfusion.devlic"));
-                    Syncfusion.Licensing.SyncfusionLicenseProvider.RegisterLicense(syncfusionKey);
+                    using Stream? rsrcStream = assembly.GetManifestResourceStream(assembly.GetName().Name + ".devlics." + resourceName);
+
+                    if (rsrcStream != null)
+                    {
+                        using StreamReader streamReader = new(rsrcStream);
+
+                        string key = streamReader.ReadToEnd();
+
+                        if (key != "")
+                        {
+                            Syncfusion.Licensing.SyncfusionLicenseProvider.RegisterLicense(key);
+                        }    
+                    }
                 }
             }
             catch { };
-#else
-            // Do whatever I should do with the actual license key
-#endif
+
             this.InitializeComponent();
         }
 
