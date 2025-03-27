@@ -1,4 +1,5 @@
 ﻿using Microsoft.UI.Dispatching;
+using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
@@ -62,6 +63,11 @@ namespace QuickDraw
 
 
             m_window = new MainWindow();
+            var presenter = OverlappedPresenter.Create();
+
+            presenter.PreferredMinimumWidth = 512;
+            presenter.PreferredMinimumHeight = 312;
+            m_window.AppWindow.SetPresenter(presenter);
             m_window.Activate();
         }
 

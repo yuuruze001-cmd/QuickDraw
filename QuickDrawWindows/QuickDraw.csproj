@@ -55,7 +55,6 @@
     <PackageReference Include="Syncfusion.Core.WinUI" Version="28.2.11" />
     <PackageReference Include="Syncfusion.Licensing" Version="28.2.11" />
     <PackageReference Include="Syncfusion.Sliders.WinUI" Version="28.2.11" />
-    <PackageReference Include="WinUIEx" Version="2.5.1" />
     <Manifest Include="$(ApplicationManifest)" />
   </ItemGroup>
 
