@@ -117,7 +117,19 @@ namespace QuickDraw
             if (GetTemplateChild("PauseButton") is Button pauseButton )
             {
                 pauseButton.Click += PauseButton_Click;
+
+                var settings = (App.Current as App)?.Settings;
+
+                if (settings != null)
+                {
+                    if (settings.SlideTimerDuration == Models.TimerEnum.NoLimit)
+                    {
+                        pauseButton.Visibility = Visibility.Collapsed;
+                    }
+                }
             }
+
+
 
             if (GetTemplateChild("BackButton") is Button backButton) {
                 backButton.Click += SlideTitleBar_BackClick;
