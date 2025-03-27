@@ -62,17 +62,15 @@ namespace QuickDraw
             Settings.ReadSettings();
 
 
-            m_window = new MainWindow();
             var presenter = OverlappedPresenter.Create();
 
             presenter.PreferredMinimumWidth = 512;
             presenter.PreferredMinimumHeight = 312;
-            m_window.AppWindow.SetPresenter(presenter);
-            m_window.Activate();
+            Window.AppWindow.SetPresenter(presenter);
+            Window.Activate();
         }
 
-        private Window m_window;
-        public MainWindow Window => (MainWindow)m_window;
+        public static MainWindow Window = new();
         public MFSettings Settings { get; set; } = new();
     }
 }

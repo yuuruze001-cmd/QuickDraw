@@ -89,7 +89,7 @@ namespace QuickDraw
 
         protected override void OnApplyTemplate()
         {
-            m_window = ((App)Application.Current).Window;
+            m_window = App.Window;
             m_appWindow = m_window.AppWindow;
             m_titleBar = m_appWindow.TitleBar;
 

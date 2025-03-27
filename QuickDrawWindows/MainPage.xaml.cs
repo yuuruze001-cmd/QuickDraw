@@ -175,7 +175,7 @@ namespace QuickDraw
                         app.Settings.SlidePaths = [.. images];
                         DispatcherQueue.EnqueueAsync(() =>
                         {
-                            app?.Window.NavigateToSlideshow();
+                            App.Window.NavigateToSlideshow();
                         });
                     } else
                     {
