@@ -1,5 +1,6 @@
 using System;
 using System.Diagnostics;
+using System.Threading.Tasks;
 using CommunityToolkit.WinUI;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -124,7 +125,17 @@ namespace QuickDraw
 
         private void Folder_Click(object sender, RoutedEventArgs e)
         {
-            //Launcher.LaunchFolderPathAsync(path);
+            var folder = GetImageFolder();
+
+            if (folder != null)
+            {
+                Task.Run(async () =>
+                {
+                    await Launcher.LaunchFolderPathAsync(folder.Path);
+                });
+            }
+
+            // TODO: probably notify user this folder no longer exists, maybe offer to delete
         }
 
         private void Delete_Click(object sender, RoutedEventArgs e)
@@ -138,6 +149,19 @@ namespace QuickDraw
                 settings?.ImageFolderList.RemoveFolderAt(i);
                 settings?.WriteSettings();
             }
+        }
+
+        private MFImageFolder? GetImageFolder()
+        {
+            var list = (this as FrameworkElement).FindAscendant<ListView>() as ListView;
+
+            var container = this.FindAscendant<ListViewItem>();
+            if (container != null)
+            {
+                return list?.ItemFromContainer(container) as MFImageFolder;
+            }
+
+            return null;
         }
     }
 }
