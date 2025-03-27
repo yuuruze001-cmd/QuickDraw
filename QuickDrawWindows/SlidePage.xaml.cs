@@ -5,6 +5,7 @@ using Microsoft.Graphics.Canvas.UI;
 using Microsoft.Graphics.Canvas.UI.Xaml;
 using Microsoft.UI;
 using Microsoft.UI.Dispatching;
+using Microsoft.UI.Input;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
@@ -34,6 +35,19 @@ using Windows.Storage;
 
 namespace QuickDraw
 {
+    public partial class MFPointerGrid : Grid
+    {
+        public MFPointerGrid() : base()
+        {
+            
+        }
+
+        public void SetCursor(InputCursor? cursor)
+        {
+            ProtectedCursor = cursor;
+        }
+    }
+
     enum LoadDirection
     {
         Backwards,
@@ -67,6 +81,8 @@ namespace QuickDraw
         private uint m_TicksElapsed = 0;
 
         private TaskCompletionSource<bool> imageCacheFilled = new();
+
+        private Rect? currentImageBoundsInView = null;
 
         public SlidePage()
         {
@@ -154,14 +170,16 @@ namespace QuickDraw
                             canvasSize.Height
                         );
                         imagePos = new Point((canvasSize.Width - imageRenderSize.Width) / 2, 0);
-
                     }
+
+                    Rect destBounds = new(imagePos, imageRenderSize);
+                    currentImageBoundsInView = destBounds;
 
                     CanvasCommandList cl = new(sender);
 
                     using (CanvasDrawingSession clds = cl.CreateDrawingSession())
                     {
-                        clds.DrawImage(bitmap, new Rect(imagePos, imageRenderSize), bitmap?.Bounds ?? new Rect());
+                        clds.DrawImage(bitmap, destBounds, bitmap?.Bounds ?? new Rect());
                     }
 
                     if (grayscale)
@@ -170,7 +188,7 @@ namespace QuickDraw
                         {
                             Source = bitmap
                         };
-                        args.DrawingSession.DrawImage(grayscale, new Rect(imagePos, imageRenderSize), bitmap?.Bounds ?? new Rect());
+                        args.DrawingSession.DrawImage(grayscale, destBounds, bitmap?.Bounds ?? new Rect());
                     }
                     else
                     {
@@ -421,6 +439,55 @@ namespace QuickDraw
             {
                 m_SlideTimer?.Start();
                 AppTitleBar.IsPaused = false;
+            }
+        }
+
+        private void SlideCanvas_PointerReleased(object sender, PointerRoutedEventArgs e)
+        {
+            if (IsPointerEventInImageBounds(e))
+            {
+                var imageIndex = 0;
+                lock (cachedImagesLock)
+                {
+                    imageIndex = imageCachePosition;
+                }
+
+                if (imageIndex == -1)
+                    return;
+
+                var path = imagePaths?[imageIndex];
+
+                if (path != null)
+                {
+                    Task.Run(async () =>
+                    {
+                        Windows.System.FolderLauncherOptions launchOptions = new();
+
+                        var hWnd = WinRT.Interop.WindowNative.GetWindowHandle(App.Window);
+                        WinRT.Interop.InitializeWithWindow.Initialize(launchOptions, hWnd);
+
+                        var file = await StorageFile.GetFileFromPathAsync(path);
+                        launchOptions.ItemsToSelect.Add(file);
+                        
+                        await Windows.System.Launcher.LaunchFolderPathAsync(Path.GetDirectoryName(path), launchOptions);
+                    });
+                }
+            }
+        }
+
+        private bool IsPointerEventInImageBounds(PointerRoutedEventArgs e)
+        {
+            return currentImageBoundsInView?.Contains(e.GetCurrentPoint(SlideCanvas).Position) ?? false;
+        }
+
+        private void SlideCanvas_PointerMoved(object sender, PointerRoutedEventArgs e)
+        {
+            if (IsPointerEventInImageBounds(e))
+            {
+                SlideCanvasContainer.SetCursor(InputSystemCursor.Create(InputSystemCursorShape.Hand));
+            } else
+            {
+                SlideCanvasContainer.SetCursor(null);
             }
         }
     }

@@ -75,7 +75,7 @@ namespace QuickDraw
             Window.Activate();
         }
 
-        public static MainWindow Window = new();
+        public static readonly MainWindow Window = new();
         public MFSettings Settings { get; set; } = new();
     }
 }
