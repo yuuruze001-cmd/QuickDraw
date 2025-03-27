@@ -1,4 +1,6 @@
 using System;
+using System.Diagnostics;
+using CommunityToolkit.WinUI;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using QuickDraw.Models;
@@ -26,6 +28,22 @@ namespace QuickDraw
         public delegate void ColumnWidthChangedEventHandler(object sender, ColumnWidthChangedEventArgs args);
 
         public event ColumnWidthChangedEventHandler ColumnWidthChanged;
+
+        public class ColumnDataRemoveEventArgs: EventArgs
+        {
+            public TextBlock PathText;
+            public TextBlock ImageCountText;
+
+            public ColumnDataRemoveEventArgs(TextBlock pathText, TextBlock imageCountText)
+            {
+                PathText = pathText;
+                ImageCountText = imageCountText;
+            }
+        }
+
+        public delegate void ColumnDataRemoveEventHandler(object sender, ColumnDataRemoveEventArgs args);
+
+        public event ColumnDataRemoveEventHandler ColumnDataRemove;
 
         public GridLength DesiredPathColumnWidth
         {
@@ -70,11 +88,17 @@ namespace QuickDraw
         public MFImageFolderView()
         {
             this.InitializeComponent();
+
+            ColumnWidthChanged?.Invoke(PathText, new(ColumnType.Path));
+            ColumnWidthChanged?.Invoke(ImageCountText, new(ColumnType.ImageCount));
+
+            Unloaded += MFImageFolderView_Unloaded;
+
         }
 
-        protected override void OnApplyTemplate()
+        private void MFImageFolderView_Unloaded(object sender, RoutedEventArgs e)
         {
-            base.OnApplyTemplate();
+            ColumnDataRemove?.Invoke(this, new(PathText, ImageCountText));
         }
 
         private void PathText_SizeChanged(object sender, SizeChangedEventArgs e)
@@ -90,6 +114,29 @@ namespace QuickDraw
         private void Grid_SizeChanged(object sender, SizeChangedEventArgs e)
         {
             ColumnWidthChanged?.Invoke(sender, new(ColumnType.Grid));
+        }
+
+        private void Refresh_Click(object sender, RoutedEventArgs e)
+        {
+
+        }
+
+        private void Folder_Click(object sender, RoutedEventArgs e)
+        {
+
+        }
+
+        private void Delete_Click(object sender, RoutedEventArgs e)
+        {
+            var list = (this as FrameworkElement).FindAscendant<ListView>() as ListView;
+            var i = list?.IndexFromContainer(this.FindAscendant<ListViewItem>()) ?? -1;
+
+            if (i != -1)
+            {
+                var settings = (App.Current as App).Settings;
+                settings.ImageFolderList.RemoveFolderAt(i);
+                settings.WriteSettings();
+            }
         }
     }
 }

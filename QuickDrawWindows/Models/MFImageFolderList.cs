@@ -104,5 +104,12 @@ namespace QuickDraw.Models
                 AddFolderPath(path);
             }
         }
+
+        public void RemoveFolderAt(int index)
+        {
+            var folder = ImageFolders[index];
+            ImageFolders.RemoveAt(index);
+            CollectionChanged?.Invoke(this, new(NotifyCollectionChangedAction.Remove, folder));
+        }
     }
 }
