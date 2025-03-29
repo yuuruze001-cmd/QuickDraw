@@ -83,7 +83,7 @@ namespace QuickDraw.Models
         {
             Task.Run(async () =>
             {
-                await Task.Delay(2000);
+                await Task.Delay(200);
                 return await GetFolderImages(folder.Path);
             }).ContinueWith((t) =>
             {
