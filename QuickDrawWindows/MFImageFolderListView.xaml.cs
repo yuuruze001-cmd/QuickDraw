@@ -24,6 +24,7 @@ using System.Diagnostics;
 using WinRT;
 using System.Collections.Concurrent;
 using Windows.System;
+using System.Reflection;
 
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
@@ -32,12 +33,11 @@ namespace QuickDraw
 {
     public static class TextBlockExtensions
     {
-        public static double PreWrappedWidth(this TextBlock textBlock)
+        public static double Width(this string value)
         {
-            var tempTextBlock = new TextBlock { Text = textBlock.Text };
+            var tempTextBlock = new TextBlock { Text = value };
 
             tempTextBlock.Measure(new Size(Double.PositiveInfinity, Double.PositiveInfinity));
-            tempTextBlock.Arrange(new Rect(new Point(), textBlock.DesiredSize));
 
             return tempTextBlock.ActualWidth;
         }
@@ -45,30 +45,8 @@ namespace QuickDraw
 
     public sealed partial class MFImageFolderListView : UserControl, INotifyPropertyChanged
     {
-        public static bool InvertBool(bool value)
-        {
-            return !value;
-        }
-
-        public class ByWidth : IComparer<TextBlock>
-        {
-            public int Compare(TextBlock? x, TextBlock? y)
-            {
-                int widthCompare = x?.PreWrappedWidth().CompareTo(y?.PreWrappedWidth() ?? 0) ?? 0;
-
-                if (widthCompare == 0 && !ReferenceEquals(x, y))
-                {
-                    return 1;
-                }
-
-                return widthCompare;
-            }
-        }
-
         public MFObservableCollection<MFImageFolder>? ImageFolderCollection = null;
-
-        private readonly SortedSet<TextBlock> _pathTexts = new(new ByWidth());
-        private readonly SortedSet<TextBlock> _imageCountTexts = new(new ByWidth());
+        public event PropertyChangedEventHandler? PropertyChanged;
 
         GridLength _desiredPathColumnWidth = new(0, GridUnitType.Auto);
         public GridLength DesiredPathColumnWidth
@@ -82,9 +60,6 @@ namespace QuickDraw
         }
 
         GridLength _desiredImageCountColumnWidth = new(0, GridUnitType.Auto);
-
-        public event PropertyChangedEventHandler? PropertyChanged;
-
         public GridLength DesiredImageCountColumnWidth
         {
             get => _desiredImageCountColumnWidth;
@@ -95,6 +70,16 @@ namespace QuickDraw
             }
         }
 
+        private Point lastPointerPos = new();
+        private List<MFImageFolder> ItemsDraggedSelected = [];
+
+        private HashSet<MFImageFolder> foldersBeingReplaced = [];
+
+        private MFImageFolder? maxPathWidthImageFolder;
+        private MFImageFolder? maxImageCountWidthImageFolder;
+
+        private bool startedRefresh = false;
+
         public MFImageFolderListView()
         {
             this.InitializeComponent();
@@ -104,9 +89,11 @@ namespace QuickDraw
             if (settings != null)
             {
                 ImageFolderCollection = [.. settings.ImageFolderList.ImageFolders];
+                UpdateMaxColumnWidths();
             }
 
-            ImageFolderListView.Loaded += (sender, e) => {
+            ImageFolderListView.Loaded += (sender, e) =>
+            {
                 foreach (var i in ImageFolderCollection?.Index().Where(ft => ft.Item.Selected).Select(ft => ft.Index) ?? [])
                 {
                     ImageFolderListView.SelectRange(new(i, 1));
@@ -129,8 +116,45 @@ namespace QuickDraw
             {
                 ImageFolderCollection.CollectionChanged += (sender, e) =>
                 {
+                    if (!startedRefresh)
+                    {
+                        if (e.NewItems != null)
+                        {
+                            foreach (MFImageFolder item in e.NewItems)
+                            {
+                                if (item.IsLoading)
+                                {
+                                    startedRefresh = true;
+                                    RefreshAll.IsEnabled = false;
+                                }
+                            }
+                        }
+                    }
+                    else
+                    {
+                        if (!ImageFolderCollection.Where(f => f.IsLoading).Any())
+                        {
+                            RefreshAll.IsEnabled = true;
+                            startedRefresh = false;
+                        }
+                    }
+
                     if ((e as MFNotifyCollectionChangedEventArgs)?.FromModel ?? false)
                     {
+                        if (e.Action == NotifyCollectionChangedAction.Replace)
+                        {
+                            if (e.NewItems != null)
+                            {
+                                foreach (MFImageFolder item in e.NewItems)
+                                {
+                                    if (item.Selected)
+                                    {
+                                        foldersBeingReplaced.Add(item);
+                                    }
+                                }
+                            }
+                        }
+
                         return;
                     }
                     switch (e.Action)
@@ -156,6 +180,7 @@ namespace QuickDraw
                                 }
                             }
                             break;
+
                         default:
                             break;
                     }
@@ -184,14 +209,16 @@ namespace QuickDraw
                                         }
                                         i++;
                                     }
+                                    UpdateMaxColumnWidths();
                                 }
        
                                 break;
+
                             case NotifyCollectionChangedAction.Replace:
-                                if (e.OldItems != null)
+                                if (e.NewItems != null)
                                 {
                                     i = 0;
-                                    foreach (var item in e.OldItems)
+                                    foreach (var item in e.NewItems)
                                     {
                                         if (item is MFImageFolder folder)
                                         {
@@ -199,9 +226,10 @@ namespace QuickDraw
                                         }
                                         i++;
                                     }
+                                    UpdateMaxColumnWidths();
                                 }
-           
                                 break;
+
                             case NotifyCollectionChangedAction.Remove:
                                 if (e.OldItems != null)
                                 {
@@ -210,57 +238,61 @@ namespace QuickDraw
                                         if (item is MFImageFolder folder)
                                         ImageFolderCollection?.RemoveFromModel(folder);
                                     }
+                                    UpdateMaxColumnWidths();
                                 }
-
                                 break;
+
                             default:
                                 break;
                         }
                     });
+
+                    var settings = (App.Current as App)?.Settings;
+                    settings?.WriteSettings();
                 };
             }
 
         }
 
-        private void UpdateColumnWidths()
+        private void UpdateMaxColumnWidths()
         {
-            if (_pathTexts.Count < 1 || _imageCountTexts.Count < 1) { return; }
-            Grid? grid = (_pathTexts.Max as FrameworkElement)?.Parent as Grid;
-
-            ProgressRing? progressRing = _imageCountTexts.Max?.Parent?.FindDescendant<ProgressRing>();
-            if (progressRing != null)
-            {
-                var ImageCountColumnWidth = Math.Max(_imageCountTexts.Max?.ActualWidth ?? 0.0, progressRing.ActualWidth) + 20;
-
-                var gridWidth = grid?.ActualWidth ?? 0.0;
-                var availableWidth = gridWidth - (grid?.ColumnDefinitions[3].ActualWidth ?? 0.0 + ImageCountColumnWidth + 20);
-
-                var maxPathColumnWidth = _pathTexts.Max != null ? _pathTexts.Max.PreWrappedWidth() + 1 : 0;
-                var PathColumnWidth = Math.Max(100, Math.Min(availableWidth, maxPathColumnWidth));
-
-                DesiredPathColumnWidth = new GridLength(PathColumnWidth);
-                DesiredImageCountColumnWidth = new GridLength(ImageCountColumnWidth);
-            }
-        }
-
-        private void MFImageFolderControl_ColumnWidthChanged(object sender, MFImageFolderView.ColumnWidthChangedEventArgs args)
-        {
-            switch (args.columnType)
-            {
-                case ColumnType.Path:
-                    if (sender is TextBlock pathText) _pathTexts.Add(pathText);
-
-                    break;
-
-                case ColumnType.ImageCount:
-                    if (sender is TextBlock imageCountText) _imageCountTexts.Add(imageCountText);
-                    break;
-
-                default:
-                    break;
-            }
+            maxPathWidthImageFolder = ImageFolderCollection?.MaxBy(f => f.Path.Width());
+            maxImageCountWidthImageFolder = ImageFolderCollection?.MaxBy(f => f.ImageCount.ToString().Width());
 
             UpdateColumnWidths();
+        }
+
+        private void UpdateColumnWidths()
+        {
+            if (maxPathWidthImageFolder == null || maxImageCountWidthImageFolder == null) return;
+
+            var maxPathWidth = maxPathWidthImageFolder?.Path.Width() ?? 0;
+            var maxImageCountWidth = maxImageCountWidthImageFolder?.ImageCount.ToString().Width() ?? 0;
+
+            Grid? grid = null;
+
+            if (maxPathWidthImageFolder != null)
+            {
+                grid = (ImageFolderListView.ContainerFromItem(maxPathWidthImageFolder) as FrameworkElement)?.FindDescendant<Grid>();
+            }
+
+            ProgressRing? progressRing = grid?.FindDescendant<ProgressRing>();
+
+            var ImageCountColumnWidth = Math.Max(maxImageCountWidth, progressRing?.ActualWidth ?? 32) + 20;
+
+            var gridWidth = grid?.ActualWidth ?? 0.0;
+            var availableWidth = gridWidth - ((grid?.ColumnDefinitions[3].ActualWidth ?? 0.0) + ImageCountColumnWidth + 20);
+
+            var maxPathColumnWidth = maxPathWidth + 1;
+            var PathColumnWidth = Math.Max(100, Math.Min(availableWidth, maxPathColumnWidth));
+
+            DesiredPathColumnWidth = new GridLength(PathColumnWidth);
+            DesiredImageCountColumnWidth = new GridLength(ImageCountColumnWidth);
+        }
+
+        private void MFImageFolderControl_SizeChanged(object sender, SizeChangedEventArgs args)
+        {
+             UpdateColumnWidths();
         }
 
         private void OpenFolders()
@@ -306,7 +338,6 @@ namespace QuickDraw
 
                     var settings = (App.Current as App)?.Settings;
                     settings?.ImageFolderList.AddFolderPaths(paths);
-                    settings?.WriteSettings();
                 }
             }
             catch (COMException)
@@ -331,32 +362,51 @@ namespace QuickDraw
         private void ImageFolderListView_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             var settings = (App.Current as App)?.Settings;
+            bool settingsChanged = false;
 
             foreach (var item in e.AddedItems.Cast<MFImageFolder>())
             {
-                item.Selected = true;
-                var index = ImageFolderCollection?.IndexOf(item) ?? -1;
+                var (index, itemInList) = ImageFolderCollection?.Index().FirstOrDefault(t => t.Item.Path == item.Path) ?? (-1, null);
 
-                if (index >= 0 && settings != null)
+                if (foldersBeingReplaced.Any() && foldersBeingReplaced.Where(f => f.Path == item.Path).Any())
+                {
+                    if (itemInList.Selected)
+                    {
+                        ImageFolderListView.SelectedItems.Add(itemInList);
+                    }
+
+                    foldersBeingReplaced.RemoveWhere(f => f.Path == item.Path);
+                }
+
+                else if (index >= 0 && settings != null)
                 {
                     settings.ImageFolderList.ImageFolders[index].Selected = true;
-
+                    settingsChanged = true;
                 }
+
             }
 
             foreach (var item in e.RemovedItems.Cast<MFImageFolder>())
             {
-                if (ItemsDraggedSelected.Contains(item))
+                var (index, itemInList) = ImageFolderCollection?.Index().FirstOrDefault(t => t.Item.Path == item.Path) ?? (-1, null);
+
+                if (ItemsDraggedSelected.Where(f => f.Path == item.Path).Any())
                 {
-                    ImageFolderListView.SelectedItems.Add(item);
+                    ImageFolderListView.SelectedItems.Add(itemInList);
                     continue;
                 }
-                item.Selected = false;
-                var index = ImageFolderCollection?.IndexOf(item) ?? -1;
 
-                if (index >= 0 && settings != null)
+                if (foldersBeingReplaced.Any() && foldersBeingReplaced.Where(f => f.Path == item.Path).Any())
+                {
+                    if (itemInList.Selected)
+                    {
+                        ImageFolderListView.SelectedItems.Add(itemInList);
+                    }
+                }
+                else if (index >= 0 && settings != null)
                 {
                     settings.ImageFolderList.ImageFolders[index].Selected = false;
+                    settingsChanged = true;
                 }
             }
 
@@ -368,10 +418,11 @@ namespace QuickDraw
                 SelectAllCheckbox.IsChecked = false;
             }
 
-            settings?.WriteSettings();
+            if (settingsChanged)
+            {
+                settings?.WriteSettings();
+            }
         }
-
-        private List<MFImageFolder> ItemsDraggedSelected = [];
 
         private void ImageFolderListView_DragItemsStarting(object sender, DragItemsStartingEventArgs e)
         {
@@ -383,7 +434,6 @@ namespace QuickDraw
 
             ItemsDraggedSelected.AddRange(items.Where(f => f.Selected));
 
-
             foreach (var item in items)
             {
                 if (item != hoveritem)
@@ -391,8 +441,6 @@ namespace QuickDraw
                     var itemelem = ImageFolderListView.ContainerFromItem(item) as ListViewItem;
 
                     VisualStateManager.GoToState(itemelem, "DragHidden", true);
-
-
                 }
             }
         }
@@ -409,8 +457,6 @@ namespace QuickDraw
             }
             ItemsDraggedSelected.Clear();
         }
-
-        Point lastPointerPos = new();
 
         private void ImageFolderListView_PointerMoved(object sender, PointerRoutedEventArgs e)
         {
@@ -432,12 +478,13 @@ namespace QuickDraw
             });
         }
 
-        private void MFImageFolderView_ColumnDataRemove(object sender, MFImageFolderView.ColumnDataRemoveEventArgs args)
+        private void RefreshAll_Click(object sender, RoutedEventArgs e)
         {
-            _pathTexts.Remove(args.PathText);
-            _imageCountTexts.Remove(args.ImageCountText);
-
-            UpdateColumnWidths();
+            var settings = (App.Current as App)?.Settings;
+            
+            settings?.ImageFolderList.UpdateFolderCounts();
+            RefreshAll.IsEnabled = false;
+            startedRefresh = true;
         }
     }
 }

@@ -16,7 +16,7 @@
         </Grid.RowDefinitions>
 
         <CommandBar  x:Name="commandBar"  DefaultLabelPosition="Right" VerticalContentAlignment="Center" Grid.Row="0">
-            <AppBarButton Icon="Refresh" Label="Refresh">
+            <AppBarButton x:Name="RefreshAll" Click="RefreshAll_Click"  Icon="Refresh" Label="Refresh">
                 <AppBarButton.KeyboardAccelerators>
                     <KeyboardAccelerator Modifiers="Control" Key="R"/>
                     <KeyboardAccelerator Key="F5"/>
@@ -39,9 +39,14 @@
         <ListView x:Name="ImageFolderListView" PointerMoved="ImageFolderListView_PointerMoved" DragItemsStarting="ImageFolderListView_DragItemsStarting" DragItemsCompleted="ImageFolderListView_DragItemsCompleted" CanDragItems="True" ItemsSource="{x:Bind ImageFolderCollection}" Background="{StaticResource CardBackgroundFillColorDefaultBrush}" CornerRadius="6" IsItemClickEnabled="False" CanReorderItems="True" AllowDrop="True" SelectionMode="Multiple" Grid.Row="1" BorderThickness="1" BorderBrush="{StaticResource CardStrokeColorDefaultBrush}" >
             <ListView.ItemTemplate>
                 <DataTemplate x:DataType="local:Models.MFImageFolder">
-                    <local:MFImageFolderView Folder="{x:Bind}" ColumnDataRemove="MFImageFolderView_ColumnDataRemove" ColumnWidthChanged="MFImageFolderControl_ColumnWidthChanged" DesiredPathColumnWidth="{Binding ElementName=Control, Path=DesiredPathColumnWidth}" DesiredImageCountColumnWidth="{Binding ElementName=Control, Path=DesiredImageCountColumnWidth }"/>
+                    <local:MFImageFolderView Folder="{x:Bind}" SizeChanged="MFImageFolderControl_SizeChanged" DesiredPathColumnWidth="{Binding ElementName=Control, Path=DesiredPathColumnWidth}" DesiredImageCountColumnWidth="{Binding ElementName=Control, Path=DesiredImageCountColumnWidth }"/>
                 </DataTemplate>
             </ListView.ItemTemplate>
+            <ListView.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <StackPanel/>
+                </ItemsPanelTemplate>
+            </ListView.ItemsPanel>
             <ListView.ItemContainerStyle>
                 <Style x:Key="DefaultListViewItemStyle" TargetType="ListViewItem">
                     <Setter Property="FontFamily" Value="{ThemeResource ContentControlThemeFontFamily}" />

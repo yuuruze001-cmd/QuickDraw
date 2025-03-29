@@ -65,10 +65,14 @@ namespace QuickDraw
             m_leftInset = (double)(m_titleBar?.LeftInset ?? 0) * scale;
             m_rightInset = (double)(m_titleBar?.RightInset ?? 0) * scale;
 
-            if (GetTemplateChild("LeftInsetColumn") is ColumnDefinition colDef)
+            if (GetTemplateChild("LeftInsetColumn") is ColumnDefinition leftColDef)
             {
-                colDef.Width = new GridLength(m_leftInset, GridUnitType.Pixel);
-                colDef.Width = new GridLength(m_rightInset, GridUnitType.Pixel);
+                leftColDef.Width = new GridLength(m_leftInset, GridUnitType.Pixel);
+            }
+
+            if (GetTemplateChild("RightInsetColumn") is ColumnDefinition rightColDef)
+            {
+                rightColDef.Width = new GridLength(m_rightInset, GridUnitType.Pixel);
             }
         }
 

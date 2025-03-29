@@ -17,10 +17,11 @@ namespace QuickDraw.Models
 
         public bool Selected { get; set; } = false;
 
-        public MFImageFolder(string path, int imageCount, bool isLoading = false)
+        public MFImageFolder(string path, int imageCount, bool selected, bool isLoading = false)
         {
             Path = path;
             ImageCount = imageCount;
+            Selected = selected;
             IsLoading = isLoading;
         }
     }

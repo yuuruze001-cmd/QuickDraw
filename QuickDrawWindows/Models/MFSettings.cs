@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -75,67 +76,90 @@ namespace QuickDraw.Models
 
     public class MFSettings : INotifyPropertyChanged
     {
-
         public MFImageFolderList ImageFolderList { get; set; } = new MFImageFolderList();
 
-        [JsonIgnore]
-        private Task? writeTask;
-        [JsonIgnore]
-        private Queue<Func<Task>> writeTasksQueue = new();
+        public TimerEnum SlideTimerDuration
+        {
+            get;
+            set;
+        }
 
         public event PropertyChangedEventHandler? PropertyChanged;
 
         [JsonIgnore]
+        private Task? writeTask;
+
+        [JsonIgnore]
+        private ConcurrentQueue<Func<Task>> writeTasksQueue = new();
+
+        [JsonIgnore]
         public List<string> SlidePaths { get; set; } = [];
 
-        public TimerEnum SlideTimerDuration { 
-            get; 
-            set; 
-        }
+        [JsonIgnore]
+        private object _writeLock = new object();
 
         private async Task _writeSettings()
         {
-            var appDataPath = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-            var appDataFolder = await StorageFolder.GetFolderFromPathAsync(appDataPath);
+            try
+            {
+                var appDataPath = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+                var appDataFolder = await StorageFolder.GetFolderFromPathAsync(appDataPath);
 
-            var qdDataFolder = await appDataFolder.CreateFolderAsync("MFDigitalMedia.QuickDraw", CreationCollisionOption.OpenIfExists);
+                var qdDataFolder = await appDataFolder.CreateFolderAsync("MFDigitalMedia.QuickDraw", CreationCollisionOption.OpenIfExists);
 
-            var file = await qdDataFolder.CreateFileAsync("settings.json", CreationCollisionOption.OpenIfExists);
+                var file = await qdDataFolder.CreateFileAsync("settings.json", CreationCollisionOption.OpenIfExists);
 
-            using var stream = await file.OpenStreamForWriteAsync();
-            await JsonSerializer.SerializeAsync(stream, this);
-            stream.SetLength(stream.Position);
-            stream.Dispose();
+                using (var stream = await file.OpenStreamForWriteAsync())
+                {
+                    await JsonSerializer.SerializeAsync(stream, this);
+                    stream.SetLength(stream.Position);
+                    stream.Dispose();
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex);
+            }
+
         }
 
         // Writes folder, makes sure we don't overlap with other writes
         public void WriteSettings()
         {
-            if (writeTask == null)
+            lock (_writeLock)
             {
-                void WriteContinue()
+                if (writeTask == null)
                 {
-                    if (writeTasksQueue.Count > 0)
+                    void WriteContinue()
                     {
-                        writeTask = writeTasksQueue.Dequeue()().ContinueWith(Task =>
+                        if (writeTasksQueue.Count > 0)
                         {
-                            WriteContinue();
-                        });
-                    }
-                    else
-                    {
-                        writeTask = null;
-                    }
-                }
+                            Func<Task>? dequeueResult;
+                            writeTasksQueue.TryDequeue(out dequeueResult);
 
-                writeTask = _writeSettings().ContinueWith(Task =>
+                            if (dequeueResult != null)
+                            {
+                                writeTask = dequeueResult().ContinueWith(Task =>
+                                {
+                                    WriteContinue();
+                                });
+                            }
+                        }
+                        else
+                        {
+                            writeTask = null;
+                        }
+                    }
+
+                    writeTask = _writeSettings().ContinueWith(Task =>
+                    {
+                        WriteContinue();
+                    });
+                }
+                else
                 {
-                    WriteContinue();
-                });
-            }
-            else
-            {
-                writeTasksQueue.Enqueue(_writeSettings);
+                    writeTasksQueue.Enqueue(_writeSettings);
+                }
             }
         }
 
