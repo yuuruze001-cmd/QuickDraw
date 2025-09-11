@@ -1,91 +1,117 @@
-﻿using Microsoft.UI.Dispatching;
-using Microsoft.UI.Windowing;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.UI.Xaml;
-using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Controls.Primitives;
-using Microsoft.UI.Xaml.Data;
-using Microsoft.UI.Xaml.Input;
-using Microsoft.UI.Xaml.Media;
-using Microsoft.UI.Xaml.Navigation;
-using Microsoft.UI.Xaml.Shapes;
-using QuickDraw.Models;
+using QuickDraw.Activation;
+using QuickDraw.Contracts.Services;
+using QuickDraw.Services;
+using QuickDraw.ViewModels;
+using QuickDraw.Views;
 using System;
-using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Reflection;
-using System.Runtime.InteropServices.WindowsRuntime;
-using System.Threading.Tasks;
-using Windows.ApplicationModel;
-using Windows.ApplicationModel.Activation;
-using Windows.Foundation;
-using Windows.Foundation.Collections;
-using Path = System.IO.Path;
 
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
 
-namespace QuickDraw
+namespace QuickDraw;
+
+/// <summary>
+/// Provides application-specific behavior to supplement the default Application class.
+/// </summary>
+public partial class App : Application
 {
-    /// <summary>
-    /// Provides application-specific behavior to supplement the default Application class.
-    /// </summary>
-    public partial class App : Application
+    public IHost Host
     {
-        /// <summary>
-        /// Initializes the singleton application object.  This is the first line of authored code
-        /// executed, and as such is the logical equivalent of main() or WinMain().
-        /// </summary>
-        public App()
+        get;
+    }
+
+    public static T GetService<T>()
+        where T : class
+    {
+        if ((App.Current as App)!.Host.Services.GetService(typeof(T)) is not T service)
         {
-            try
+            throw new ArgumentException($"{typeof(T)} needs to be registered in ConfigureServices within App.xaml.cs.");
+        }
+
+        return service;
+    }
+
+    /// <summary>
+    /// Initializes the singleton application object.  This is the first line of authored code
+    /// executed, and as such is the logical equivalent of main() or WinMain().
+    /// </summary>
+    public App()
+    {
+        try
+        {
+            string resourceName = "syncfusion.devlic";
+
+            Assembly assembly = Assembly.GetExecutingAssembly();
+
+            if (assembly != null)
             {
-                string resourceName = "syncfusion.devlic";
+                using Stream? rsrcStream = assembly.GetManifestResourceStream(assembly.GetName().Name + ".devlics." + resourceName);
 
-                Assembly assembly = Assembly.GetExecutingAssembly();
-
-                if (assembly != null)
+                if (rsrcStream != null)
                 {
-                    using Stream? rsrcStream = assembly.GetManifestResourceStream(assembly.GetName().Name + ".devlics." + resourceName);
+                    using StreamReader streamReader = new(rsrcStream);
 
-                    if (rsrcStream != null)
+                    string key = streamReader.ReadToEnd();
+
+                    if (key != "")
                     {
-                        using StreamReader streamReader = new(rsrcStream);
-
-                        string key = streamReader.ReadToEnd();
-
-                        if (key != "")
-                        {
-                            Syncfusion.Licensing.SyncfusionLicenseProvider.RegisterLicense(key);
-                        }    
-                    }
+                        Syncfusion.Licensing.SyncfusionLicenseProvider.RegisterLicense(key);
+                    }    
                 }
             }
-            catch { };
-
-            this.InitializeComponent();
         }
+        catch { };
 
-        /// <summary>
-        /// Invoked when the application is launched.
-        /// </summary>
-        /// <param name="args">Details about the launch request and process.</param>
-        protected override void OnLaunched(Microsoft.UI.Xaml.LaunchActivatedEventArgs args)
-        {
+        this.InitializeComponent();
 
-            Settings.ReadSettings();
+        Host = Microsoft.Extensions.Hosting.Host.
+            CreateDefaultBuilder().
+            UseContentRoot(AppContext.BaseDirectory).
+            ConfigureServices(services =>
+            {
+                // Default Activation Handler
+                services.AddTransient<ActivationHandler<LaunchActivatedEventArgs>, DefaultActivationHandler>();
 
+                // Other Activation Handlers
 
-            var presenter = OverlappedPresenter.Create();
+                // Services
+                services.AddSingleton<ISettingsService, SettingsService>();
+                services.AddSingleton<IActivationService, ActivationService>();
+                services.AddSingleton<IPageService, PageService>();
+                services.AddSingleton<INavigationService, NavigationService>();
 
-            presenter.PreferredMinimumWidth = 512;
-            presenter.PreferredMinimumHeight = 312;
-            Window.AppWindow.SetPresenter(presenter);
-            Window.Activate();
-        }
-
-        public static readonly MainWindow Window = new();
-        public MFSettings Settings { get; set; } = new();
+                // Views and ViewModels
+                services.AddTransient<MainViewModel>();
+                services.AddTransient<MainPage>();
+            }).
+            Build();
     }
+
+    /// <summary>
+    /// Invoked when the application is launched.
+    /// </summary>
+    /// <param name="args">Details about the launch request and process.</param>
+    protected async override void OnLaunched(LaunchActivatedEventArgs args)
+    {
+        base.OnLaunched(args);
+        /*            Settings.ReadSettings();
+
+
+                    var presenter = OverlappedPresenter.Create();
+
+                    presenter.PreferredMinimumWidth = 512;
+                    presenter.PreferredMinimumHeight = 312;
+                    Window.AppWindow.SetPresenter(presenter);
+                    Window.Activate();*/
+
+        await App.GetService<IActivationService>().ActivateAsync(args);
+    }
+
+
+    public static MainWindow Window { get; } = new();
 }

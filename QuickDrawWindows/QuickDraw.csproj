@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>net9.0-windows10.0.26100.0</TargetFramework>
+    <TargetFramework>net10.0-windows10.0.26100.0</TargetFramework>
     <TargetPlatformMinVersion>10.0.18362.0</TargetPlatformMinVersion>
     <RootNamespace>QuickDraw</RootNamespace>
     <Platforms>x86;x64;ARM64</Platforms>
@@ -30,6 +30,11 @@
 	<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <Nullable>enable</Nullable>
   </PropertyGroup>
+  <ItemGroup>
+    <None Remove="MFImageFolderListView.xaml" />
+    <None Remove="Views\MainTitlebarControl.xaml" />
+    <None Remove="Views\SlideTitlebarControl.xaml" />
+  </ItemGroup>
 
 
   <ItemGroup>
@@ -48,11 +53,14 @@
 
   <ItemGroup>
     <PackageReference Include="CommunityToolkit.Common" Version="8.4.0" />
-    <PackageReference Include="CommunityToolkit.WinUI.Extensions" Version="8.2.250129-preview2" />
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
+    <PackageReference Include="CommunityToolkit.WinUI.Animations" Version="8.2.250402" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.0-rc.1.25451.107" />
     <PackageReference Include="Microsoft.Graphics.Win2D" Version="1.3.2" />
     <PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.26100.1742" />
     <PackageReference Include="Microsoft.WindowsAppSDK" Version="1.7.250310001" />
     <PackageReference Include="Syncfusion.Core.WinUI" Version="28.2.11" />
+    <PackageReference Include="Syncfusion.Grid.WinUI" Version="28.2.11" />
     <PackageReference Include="Syncfusion.Licensing" Version="28.2.11" />
     <PackageReference Include="Syncfusion.Sliders.WinUI" Version="28.2.11" />
     <Manifest Include="$(ApplicationManifest)" />
@@ -77,12 +85,26 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\QuickDraw.Core\QuickDraw.Core.csproj" />
+  </ItemGroup>
+  <ItemGroup>
     <None Update="Assets\QuickDraw256x256.png">
       <Pack>True</Pack>
       <PackagePath>\</PackagePath>
     </None>
+    <Page Update="Views\MainTitlebarControl.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Update="Views\SlideTitlebarControl.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Update="MFImageFolderListView2.xaml">
+      <SubType>Designer</SubType>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Page>
     <Page Update="MFImageFolderListView.xaml">
       <Generator>MSBuild:Compile</Generator>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Page>
     <Page Update="MFImageFolderView.xaml">
       <Generator>MSBuild:Compile</Generator>
