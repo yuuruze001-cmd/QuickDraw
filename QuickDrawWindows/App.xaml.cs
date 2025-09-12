@@ -42,6 +42,7 @@ public partial class App : Application
     /// </summary>
     public App()
     {
+        // TODO: Move to App SDK 1.8 (currently syncfusion doesn't work with that version)
         try
         {
             string resourceName = "syncfusion.devlic";

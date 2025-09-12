@@ -73,6 +73,7 @@ public sealed partial class SlidePage : Page
 
     private bool grayscale = false;
 
+    // TODO: Switch to Semaphores, locks don't work properly with async
     private readonly object cachedImagesLock = new();
     private readonly object currentImageNodeLock = new();
 

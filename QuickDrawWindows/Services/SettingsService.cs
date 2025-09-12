@@ -47,7 +47,6 @@ class SettingsService : ISettingsService
 
             using var stream = await file.OpenStreamForReadAsync();
             Settings = await JsonSerializer.DeserializeAsync<Settings>(stream);
-            stream.Dispose();
         }
         catch (JsonException ex)
         {
@@ -73,7 +72,6 @@ class SettingsService : ISettingsService
 
             using var stream = await file.OpenStreamForWriteAsync();
             await JsonSerializer.SerializeAsync<Settings>(stream, Settings);
-            stream.Dispose();
         }
         catch (JsonException ex)
         {
