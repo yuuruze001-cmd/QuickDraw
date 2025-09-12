@@ -45,13 +45,13 @@ public partial class App : Application
         // TODO: Move to App SDK 1.8 (currently syncfusion doesn't work with that version)
         try
         {
-            string resourceName = "syncfusion.devlic";
+            string resourceName = "syncfusion.license";
 
             Assembly assembly = Assembly.GetExecutingAssembly();
 
             if (assembly != null)
             {
-                using Stream? rsrcStream = assembly.GetManifestResourceStream(assembly.GetName().Name + ".devlics." + resourceName);
+                using Stream? rsrcStream = assembly.GetManifestResourceStream(assembly.GetName().Name + ".Assets." + resourceName);
 
                 if (rsrcStream != null)
                 {

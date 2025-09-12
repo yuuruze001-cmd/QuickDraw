@@ -48,7 +48,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="devlics\syncfusion.devlic" Condition="Exists('devlics\syncfusion.devlic')" />
+    <EmbeddedResource Include="Assets\syncfusion.license" Condition="Exists('Assets\syncfusion.license')" />
   </ItemGroup>
 
   <ItemGroup>
