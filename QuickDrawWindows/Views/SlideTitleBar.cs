@@ -5,10 +5,6 @@ using Microsoft.UI.Xaml.Controls;
 using QuickDraw.Utilities;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Reflection.Emit;
-using System.Runtime.InteropServices.WindowsRuntime;
 using System.Threading.Tasks;
 
 // To learn more about WinUI, the WinUI project structure,

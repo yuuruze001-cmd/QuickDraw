@@ -8,7 +8,68 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
 
-    <Grid>
+    <Grid Width="Auto" Height="48" x:Name="LayoutRoot" >
+        <Grid.Resources>
+            <ResourceDictionary>
+                <x:Double x:Key="ProgressBarTrackHeight">0</x:Double>
+                <CornerRadius x:Key="ProgressBarCornerRadius">0</CornerRadius>
+            </ResourceDictionary>
+        </Grid.Resources>
 
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"></ColumnDefinition>
+        </Grid.ColumnDefinitions>
+
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"></RowDefinition>
+        </Grid.RowDefinitions>
+        <ProgressBar x:Name="ProgressBar" Grid.Column="0" VerticalAlignment="Bottom" Value="Progress"/>
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition x:Name="CenterLeftColumn" Width="*" MinWidth="62"/>
+                <ColumnDefinition x:Name="CommandsColumn" Width="Auto"/>
+                <ColumnDefinition x:Name="CenterRightColumn" Width="*" MinWidth="152"/>
+            </Grid.ColumnDefinitions>
+
+            <StackPanel Grid.Column="1" Orientation="Horizontal">
+                <StackPanel.Resources>
+                    <StaticResource x:Key="ButtonBackground" ResourceKey="ControlFillColorTransparentBrush" />
+                    <StaticResource x:Key="ButtonBorderBrush" ResourceKey="ControlFillColorTransparentBrush" />
+                </StackPanel.Resources>
+                <Button x:Name="GrayscaleButton" BorderThickness="0" Padding="12,12,12,12" Margin="0" Click="GrayscaleButton_Click">
+                    <Viewbox Width="16" Height="16">
+                        <FontIcon  Glyph="&#xE790;" />
+                    </Viewbox>
+                </Button>
+                <Button x:Name="PreviousButton" BorderThickness="0" Padding="12,12,12,12"  Margin="10,0,0,0" Click="PreviousButton_Click">
+                    <Viewbox Width="16" Height="16">
+                        <SymbolIcon   Symbol="Previous"/>
+                    </Viewbox>
+                </Button>
+                <Button x:Name="NextButton" BorderThickness="0" Padding="12,12,12,12"  Margin="10,0,0,0" Click="NextButton_Click">
+                    <Viewbox Width="16" Height="16">
+                        <SymbolIcon   Symbol="Next"/>
+                    </Viewbox>
+                </Button>
+                <Button x:Name="PauseButton" BorderThickness="0" Padding="12,12,12,12"  Margin="10,0,0,0" Click="PauseButton_Click">
+                    <Viewbox Width="16" Height="16">
+                        <SymbolIcon   Symbol="Pause"/>
+                    </Viewbox>
+                </Button>
+            </StackPanel>
+        </Grid>
+
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition x:Name="LeftInsetColumn" Width="0"/>
+                <ColumnDefinition x:Name="BackColumn" Width="Auto"/>
+                <ColumnDefinition x:Name="RightInsetColumn" Width="138"/>
+            </Grid.ColumnDefinitions>
+
+            <Button x:Name="BackButton" Grid.Column="1" CornerRadius="0" Padding="14,14,14,14" Margin="0,0,0,0" Click="BackButton_Click">
+                <FontIcon Glyph="&#xE830;" />
+            </Button>
+
+        </Grid>
     </Grid>
 </UserControl>

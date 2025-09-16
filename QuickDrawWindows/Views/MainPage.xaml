@@ -33,7 +33,7 @@
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
         
-        <local:MainTitleBar x:Name="AppTitleBar" Grid.Row="0"/>
+        <local:MainTitlebarControl x:Name="AppTitleBar" Grid.Row="0"/>
 
         <Grid Padding="24,8,24,24" x:Name="MainGrid" Grid.Row="1" >
             <Grid.RowDefinitions>
