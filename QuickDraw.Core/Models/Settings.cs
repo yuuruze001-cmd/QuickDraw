@@ -17,7 +17,7 @@ public enum TimerEnum
     NoLimit
 };
 
-static class TimerEnumExtension
+public static class TimerEnumExtension
 {
     private static Dictionary<TimerEnum, uint> TimerEnumToSeconds { get; } = new()
     {

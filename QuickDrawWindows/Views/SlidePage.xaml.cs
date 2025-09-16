@@ -1,33 +1,21 @@
-using CommunityToolkit.Common;
 using Microsoft.Graphics.Canvas;
 using Microsoft.Graphics.Canvas.Effects;
 using Microsoft.Graphics.Canvas.UI;
 using Microsoft.Graphics.Canvas.UI.Xaml;
-using Microsoft.UI;
 using Microsoft.UI.Dispatching;
 using Microsoft.UI.Input;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Controls.Primitives;
-using Microsoft.UI.Xaml.Data;
 using Microsoft.UI.Xaml.Input;
-using Microsoft.UI.Xaml.Media;
-using Microsoft.UI.Xaml.Navigation;
-using QuickDraw.Core.Models;
+using QuickDraw.ViewModels;
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Reflection;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices.WindowsRuntime;
-using System.Threading;
 using System.Threading.Tasks;
 using Windows.Foundation;
-using Windows.Foundation.Collections;
-using Windows.Foundation.Metadata;
 using Windows.Storage;
 
 // To learn more about WinUI, the WinUI project structure,
@@ -59,6 +47,11 @@ enum LoadDirection
 /// </summary>
 public sealed partial class SlidePage : Page
 {
+    public SlideViewModel ViewModel
+    {
+        get;
+    }
+
 
     private const int CACHE_SIZE = 9;
     private const int HALF_CACHE_SIZE = CACHE_SIZE / 2;
@@ -87,6 +80,8 @@ public sealed partial class SlidePage : Page
 
     public SlidePage()
     {
+        ViewModel = App.GetService<SlideViewModel>();
+
         this.InitializeComponent();
 
        /* var settings = (App.Current as App)?.Settings;
@@ -434,12 +429,12 @@ public sealed partial class SlidePage : Page
         if (m_SlideTimer?.IsRunning ?? false)
         {
             m_SlideTimer.Stop();
-            AppTitleBar.IsPaused = true;
+            AppTitleBar.Paused = true;
         }
         else
         {
             m_SlideTimer?.Start();
-            AppTitleBar.IsPaused = false;
+            AppTitleBar.Paused = false;
         }
     }
 

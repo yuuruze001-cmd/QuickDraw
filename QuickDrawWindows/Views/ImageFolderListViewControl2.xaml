@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <UserControl
-    x:Class="QuickDraw.Views.MFImageFolderListViewControl2"
+    x:Class="QuickDraw.Views.ImageFolderListViewControl2"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:local="using:QuickDraw"
@@ -56,8 +56,8 @@
             </CommandBar.Content>
         </CommandBar>
         
-        <dataGrid:SfDataGrid x:Name="sfDataGrid" 
-                         ItemsSource="{x:Bind ImageFolderCollection}"
+        <dataGrid:SfDataGrid x:Name="sfDataGrid"
+                         ItemsSource="{x:Bind ItemsSource}"
                          Grid.Row="1"    
                          AutoGenerateColumns="False"
                          SelectionMode="Extended"

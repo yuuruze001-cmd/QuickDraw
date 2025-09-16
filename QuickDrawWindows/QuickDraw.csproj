@@ -29,6 +29,7 @@
 	<ApplicationManifest>app.manifest</ApplicationManifest>
 	<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <Nullable>enable</Nullable>
+	<LangVersion>preview</LangVersion>
   </PropertyGroup>
   <ItemGroup>
     <None Remove="MFImageFolderListView.xaml" />

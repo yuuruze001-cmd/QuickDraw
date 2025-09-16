@@ -17,6 +17,18 @@ public sealed partial class SlideTitlebarControl : UserControl
         new PropertyMetadata(0)
     );
 
+    public bool Paused
+    {
+        get { return (bool)GetValue(PausedProperty); }
+        set { SetValue(PausedProperty, value); }
+    }
+    public static readonly DependencyProperty PausedProperty = DependencyProperty.Register(
+        nameof(Paused),
+        typeof(bool),
+        typeof(SlideTitlebarControl),
+        new PropertyMetadata(false)
+    );
+
     public event RoutedEventHandler? NextButtonClick;
     public event RoutedEventHandler? PreviousButtonClick;
     public event RoutedEventHandler? GrayscaleButtonClick;

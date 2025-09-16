@@ -18,7 +18,7 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
-        <local:SlideTitleBar x:Name="AppTitleBar" Grid.Row="0" NextButtonClick="AppTitleBar_NextButtonClick" PreviousButtonClick="AppTitleBar_PreviousButtonClick" GrayscaleButtonClick="AppTitleBar_GrayscaleButtonClick" PauseButtonClick="AppTitleBar_PauseButtonClick"/>
+        <local:SlideTitlebarControl Progress="50" x:Name="AppTitleBar" Grid.Row="0" NextButtonClick="AppTitleBar_NextButtonClick" PreviousButtonClick="AppTitleBar_PreviousButtonClick" GrayscaleButtonClick="AppTitleBar_GrayscaleButtonClick" PauseButtonClick="AppTitleBar_PauseButtonClick"/>
         <local:MFPointerGrid x:Name="SlideCanvasContainer" Grid.Row="1">
             <canvas:CanvasControl x:Name="SlideCanvas" PointerMoved="SlideCanvas_PointerMoved" PointerReleased="SlideCanvas_PointerReleased" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" CreateResources="SlideCanvas_CreateResources" Draw="CanvasControl_Draw" ClearColor="Transparent"/>
         </local:MFPointerGrid>

@@ -9,6 +9,34 @@
     mc:Ignorable="d">
 
     <Grid Width="Auto" Height="48" x:Name="LayoutRoot" >
+
+        <VisualStateManager.VisualStateGroups>
+            <VisualStateGroup>
+
+                <VisualStateGroup.Transitions>
+                    <VisualTransition To="Inactive" >
+                        <VisualTransition.GeneratedEasingFunction>
+                            <CubicEase EasingMode="EaseIn"/>
+                        </VisualTransition.GeneratedEasingFunction>
+                    </VisualTransition>
+                    <VisualTransition From="Inactive">
+                        <VisualTransition.GeneratedEasingFunction>
+                            <CubicEase EasingMode="EaseIn"/>
+                        </VisualTransition.GeneratedEasingFunction>
+                    </VisualTransition>
+                </VisualStateGroup.Transitions>
+
+                <VisualState x:Name="PausedState">
+                    <VisualState.StateTriggers>
+                        <StateTrigger IsActive="{x:Bind Paused}"/>
+                    </VisualState.StateTriggers>
+                    <VisualState.Setters>
+                        <Setter Target="PauseButtonSymbol.Symbol" Value="Play"/>
+                    </VisualState.Setters>
+                </VisualState>
+            </VisualStateGroup>
+        </VisualStateManager.VisualStateGroups>
+        
         <Grid.Resources>
             <ResourceDictionary>
                 <x:Double x:Key="ProgressBarTrackHeight">0</x:Double>
@@ -23,7 +51,7 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="*"></RowDefinition>
         </Grid.RowDefinitions>
-        <ProgressBar x:Name="ProgressBar" Grid.Column="0" VerticalAlignment="Bottom" Value="Progress"/>
+        <ProgressBar x:Name="ProgressBar" Grid.Column="0" VerticalAlignment="Bottom" Value="{x:Bind Progress}"/>
         <Grid>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition x:Name="CenterLeftColumn" Width="*" MinWidth="62"/>
@@ -53,7 +81,7 @@
                 </Button>
                 <Button x:Name="PauseButton" BorderThickness="0" Padding="12,12,12,12"  Margin="10,0,0,0" Click="PauseButton_Click">
                     <Viewbox Width="16" Height="16">
-                        <SymbolIcon   Symbol="Pause"/>
+                        <SymbolIcon x:Name="PauseButtonSymbol"  Symbol="Pause"/>
                     </Viewbox>
                 </Button>
             </StackPanel>

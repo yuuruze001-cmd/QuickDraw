@@ -39,7 +39,7 @@ internal class NavigationService(IPageService pageService) : INavigationService
     }
 
     [MemberNotNullWhen(true, nameof(Frame), nameof(_frame))]
-    public bool CanGoBack => throw new System.NotImplementedException();
+    public bool CanGoBack => Frame != null && Frame.CanGoBack;
 
     private void RegisterFrameEvents()
     {

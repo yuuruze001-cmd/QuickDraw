@@ -89,6 +89,9 @@ public partial class App : Application
                 // Views and ViewModels
                 services.AddTransient<MainViewModel>();
                 services.AddTransient<MainPage>();
+
+                services.AddTransient<SlideViewModel>();
+                services.AddTransient<SlidePage>();
             }).
             Build();
     }

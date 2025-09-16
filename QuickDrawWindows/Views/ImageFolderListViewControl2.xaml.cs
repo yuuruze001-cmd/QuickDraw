@@ -25,17 +25,27 @@ using WinRT;
 using System.Collections.Concurrent;
 using Windows.System;
 using System.Reflection;
+using System.Collections;
 
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
 
 namespace QuickDraw.Views;
-public sealed partial class MFImageFolderListViewControl2 : UserControl, INotifyPropertyChanged
+public sealed partial class ImageFolderListViewControl2 : UserControl
 {
-    public MFObservableCollection<ImageFolder>? ImageFolderCollection = null;
-    public event PropertyChangedEventHandler? PropertyChanged;
+    public object? ItemsSource
+    {
+        get { return (object)GetValue(ItemsSourceProperty); }
+        set { SetValue(ItemsSourceProperty, value); }
+    }
+    public static readonly DependencyProperty ItemsSourceProperty = DependencyProperty.Register(
+        nameof(ItemsSource),
+        typeof(object),
+        typeof(ImageFolderListViewControl2),
+        new PropertyMetadata(null)
+    );
 
-    public MFImageFolderListViewControl2()
+    public ImageFolderListViewControl2()
     {
         this.InitializeComponent();
 

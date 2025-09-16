@@ -152,19 +152,6 @@ public sealed partial class MainPage : Page
         this.InitializeComponent();
         this.Resources.Add("doubleToEnumConverter", new DoubleToEnumConverter(typeof(Core.Models.TimerEnum)));
         this.Resources.Add("stringToEnumConverter", new StringToEnumConverter(typeof(Core.Models.TimerEnum)));
-
-        TimerSlider.Loaded += TimerSlider_Loaded;
-    }
-
-    private void TimerSlider_Loaded(object sender, RoutedEventArgs e)
-    {
-        /*var settings = (App.Current as App)?.Settings;
-        if (sender is SfSlider slider)
-        {
-            slider.Value = settings?.SlideTimerDuration.ToSliderValue() ?? 120.0;
-        }
-
-        TimerSlider.ValueChanged += TimerSlider_ValueChanged;*/
     }
 
     private void StartButton_Click(object sender, RoutedEventArgs e)

@@ -43,7 +43,7 @@
             </Grid.RowDefinitions>
 
             <local:ImageFolderListViewControl x:Name="ImageFolderListView" Grid.Row="0"/>
-            <local:MFImageFolderListViewControl2 x:Name="ImageFolderListView2" Grid.Row="1"/>
+            <local:ImageFolderListViewControl2 x:Name="ImageFolderListView2" Grid.Row="1" ItemsSource="{x:Bind ViewModel.ImageFolderCollection}"/>
 
             <Grid Grid.Row="2" Margin="0,20,0,0">
                 <Grid.ColumnDefinitions>
@@ -52,6 +52,7 @@
                 </Grid.ColumnDefinitions>
                 <slider:SfSlider 
                     x:Name="TimerSlider"
+                    Value="{x:Bind ViewModel.TimerSiderValue}"
                      ShowDividers="True"
                      DividerHeight="10"
                      DividerWidth="10"
@@ -74,7 +75,7 @@
                     <RadioButton Content="5m" MinWidth="0" MinHeight="0"/>
                     <RadioButton Content="No Limit" MinWidth="0" MinHeight="0"/>
                 </RadioButtons>-->
-                <Button x:Name="StartButton" Margin="20,0,0,0" Grid.Column="1" VerticalAlignment="Top" Click="StartButton_Click">
+                <Button x:Name="StartButton" Margin="20,0,0,0" Grid.Column="1" VerticalAlignment="Top" Command="{x:Bind ViewModel.StartSlideShowCommand}">
 
                     <StackPanel Orientation="Horizontal" >
                         <SymbolIcon Symbol="Play" Margin="0,0,11,0"/>
