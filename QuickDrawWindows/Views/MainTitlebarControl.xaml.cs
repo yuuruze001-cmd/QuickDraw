@@ -17,10 +17,10 @@ public sealed partial class MainTitlebarControl : Base.TitlebarBaseControl
 
     protected override RectInt32[] CalculateDragRegions()
     {
-        var scale = TitlebarService?.Scale ?? 1.0;
+        var scale = this.XamlRoot.RasterizationScale;
 
         RectInt32 dragRect = new(
-            (int)(LeftInset.Value),
+            (int)(LeftInset.Value * scale),
             0,
             (int)(TitleColumn.ActualWidth * scale),
             (int)(ActualHeight * scale)

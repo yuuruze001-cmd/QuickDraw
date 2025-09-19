@@ -19,6 +19,7 @@ namespace QuickDraw.Views;
 [DependencyProperty<ICommand>("BackButtonCommand")]
 public sealed partial class SlideTitlebarControl : Base.TitlebarBaseControl
 {
+
     public SlideTitlebarControl()
     {
         InitializeComponent();
@@ -26,22 +27,23 @@ public sealed partial class SlideTitlebarControl : Base.TitlebarBaseControl
 
     protected override RectInt32[] CalculateDragRegions()
     {
-        var scale = TitlebarService?.Scale ?? 1.0;
+        var scale = this.XamlRoot.RasterizationScale;
+
         var backWidth = BackColumn.ActualWidth;
         var centerLeftWidth = CenterLeftColumn.ActualWidth;
         var centerRightWidth = CenterRightColumn.ActualWidth;
 
         RectInt32 dragRectL = new(
-            (int)(LeftInset.Value + backWidth * scale),
+            (int)((LeftInset.Value + backWidth) * scale),
             0,
-            (int)((centerLeftWidth - backWidth) * scale - LeftInset.Value),
+            (int)((centerLeftWidth - backWidth - LeftInset.Value) * scale),
             (int)(ActualHeight * scale)
         );
 
         RectInt32 dragRectR = new(
             (int)((ActualWidth - centerRightWidth) * scale),
             0,
-            (int)(centerRightWidth * scale - RightInset.Value),
+            (int)((centerRightWidth - RightInset.Value) * scale),
             (int)(ActualHeight * scale)
         );
 

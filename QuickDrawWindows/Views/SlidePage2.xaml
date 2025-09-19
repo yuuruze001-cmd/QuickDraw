@@ -29,6 +29,7 @@
             LeftInset="{x:Bind ViewModel.TitlebarLeftInset}"
             PauseVisibility="{x:Bind ViewModel.PauseVisibility, Mode=OneWay}"
             Progress="50"
+            RightInset="{x:Bind ViewModel.TitlebarRightInset}"
             TitlebarService="{x:Bind ViewModel.TitlebarService}" />
         <local:MFPointerGrid x:Name="SlideCanvasContainer" Grid.Row="1">
             <canvas:CanvasControl

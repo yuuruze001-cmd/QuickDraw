@@ -26,6 +26,12 @@ public class DragRegionsChangedEventArgs : EventArgs
 public abstract partial class TitlebarBaseControl : UserControl
 {
     public event EventHandler<DragRegionsChangedEventArgs>? DragRegionsChanged;
+
+    public TitlebarBaseControl()
+    {
+        SizeChanged += TitlebarBaseControl_SizeChanged;
+    }
+
     protected void TitlebarBaseControl_SizeChanged(object sender, Microsoft.UI.Xaml.SizeChangedEventArgs e)
     {
         var regions = CalculateDragRegions();

@@ -10,7 +10,6 @@ public class TitlebarService : ITitlebarService
 {
     private MainWindow? _window;
     private AppWindowTitleBar? _titlebar;
-    private double _scale;
 
     private GridLength _leftInset;
     private GridLength _rightInset;
@@ -34,16 +33,14 @@ public class TitlebarService : ITitlebarService
         _titlebar.ButtonInactiveForegroundColor = Color.FromArgb(0xff, 0x66, 0x66, 0x66); //WindowCaptionForegroundDisabled converted to gray with no alpha, for some reason alpha is ignored here
         //titlebar.ButtonInactiveForegroundColor = ((SolidColorBrush)Application.Current.Resources["WindowCaptionForegroundDisabled"]).Color;
 
-        _scale = MonitorInfo.GetInvertedScaleAdjustment(_window);
+        var scaleInv = MonitorInfo.GetInvertedScaleAdjustment(_window);
 
-        _leftInset = new(_titlebar.LeftInset * _scale, GridUnitType.Pixel);
-        _rightInset = new(_titlebar.RightInset * _scale, GridUnitType.Pixel);
+        _leftInset = new(_titlebar.LeftInset * scaleInv, GridUnitType.Pixel);
+        _rightInset = new(_titlebar.LeftInset * scaleInv, GridUnitType.Pixel);
     }
 
     public AppWindowTitleBar? TitleBar => _titlebar;
 
     public GridLength LeftInset => _leftInset;
     public GridLength RightInset => _rightInset;
-
-    public double Scale => _scale;
 }

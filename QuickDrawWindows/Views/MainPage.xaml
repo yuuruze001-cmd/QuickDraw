@@ -36,7 +36,9 @@
             x:Name="AppTitleBar"
             Grid.Row="0"
             DragRegionsChanged="{x:Bind ViewModel.HandleDragRegionsChanged}"
-            Inactive="{x:Bind ViewModel.TitlebarInactive, Mode=OneWay}" />
+            Inactive="{x:Bind ViewModel.TitlebarInactive, Mode=OneWay}"
+            LeftInset="{x:Bind ViewModel.TitlebarLeftInset}"
+            RightInset="{x:Bind ViewModel.TitlebarRightInset}" />
 
         <Grid
             x:Name="MainGrid"
