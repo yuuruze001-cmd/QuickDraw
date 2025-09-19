@@ -157,6 +157,7 @@ public sealed class SlideTitleBar : ContentControl
         m_leftInset = (m_titleBar?.LeftInset ?? 0) * scale;
         m_rightInset = (m_titleBar?.RightInset ?? 0) * scale;
 
+
         if (GetTemplateChild("LeftInsetColumn") is ColumnDefinition leftInsetColumn)
         {
             leftInsetColumn.Width = new GridLength(m_leftInset, GridUnitType.Pixel);

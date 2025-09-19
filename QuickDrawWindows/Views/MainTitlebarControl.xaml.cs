@@ -1,10 +1,11 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
+using QuickDraw.Views.Base;
 
 namespace QuickDraw.Views;
 
-public sealed partial class MainTitlebarControl : UserControl
+public sealed partial class MainTitlebarControl : Base.TitlebarBaseControl
 {
     public bool Disabled
     {

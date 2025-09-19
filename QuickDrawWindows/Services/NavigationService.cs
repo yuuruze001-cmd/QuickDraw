@@ -5,6 +5,7 @@ using Microsoft.UI.Xaml.Navigation;
 using QuickDraw.Contracts.Services;
 using QuickDraw.Contracts.ViewModels;
 using QuickDraw.Utilities;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 
 namespace QuickDraw.Services;

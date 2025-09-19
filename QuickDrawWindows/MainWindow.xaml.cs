@@ -34,13 +34,12 @@ public sealed partial class MainWindow : Window
         titlebar.ButtonInactiveForegroundColor = Color.FromArgb(0xff, 0x66,0x66, 0x66); //WindowCaptionForegroundDisabled converted to gray with no alpha, for some reason alpha is ignored here
         //titlebar.ButtonInactiveForegroundColor = ((SolidColorBrush)Application.Current.Resources["WindowCaptionForegroundDisabled"]).Color;
         Debug.WriteLine(titlebar.ButtonPressedForegroundColor);
-        this.MainFrame.Navigate(typeof(MainPage));
 
     }
 
     public void NavigateToSlideshow()
     {
-        MainFrame.Navigate(typeof(SlidePage), null, new SlideNavigationTransitionInfo { Effect = SlideNavigationTransitionEffect.FromRight });
+        MainFrame.Navigate(typeof(SlidePage2), null, new SlideNavigationTransitionInfo { Effect = SlideNavigationTransitionEffect.FromRight });
     }
 
     public void NavigateToMain()

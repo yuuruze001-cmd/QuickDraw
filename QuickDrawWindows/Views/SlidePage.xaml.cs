@@ -52,7 +52,6 @@ public sealed partial class SlidePage : Page
         get;
     }
 
-
     private const int CACHE_SIZE = 9;
     private const int HALF_CACHE_SIZE = CACHE_SIZE / 2;
 
@@ -193,7 +192,7 @@ public sealed partial class SlidePage : Page
             }
         }
     }
-
+    
     private void LoadImageInit()
     {
         Debug.Assert(imageLoadTask == null);

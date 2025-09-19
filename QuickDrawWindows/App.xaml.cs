@@ -85,13 +85,14 @@ public partial class App : Application
                 services.AddSingleton<IActivationService, ActivationService>();
                 services.AddSingleton<IPageService, PageService>();
                 services.AddSingleton<INavigationService, NavigationService>();
+                services.AddSingleton<ITitlebarService, TitlebarService>();
 
                 // Views and ViewModels
                 services.AddTransient<MainViewModel>();
                 services.AddTransient<MainPage>();
 
                 services.AddTransient<SlideViewModel>();
-                services.AddTransient<SlidePage>();
+                services.AddTransient<SlidePage2>();
             }).
             Build();
     }
