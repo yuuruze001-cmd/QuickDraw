@@ -221,6 +221,6 @@ public sealed class SlideTitleBar : ContentControl
 
     void SlideTitleBar_BackClick(object sender, RoutedEventArgs e)
     {
-        m_window?.NavigateToMain();
+        //m_window?.NavigateToMain();
     }
 }

@@ -1,6 +1,7 @@
 ﻿using CommunityToolkit.WinUI.Animations;
 
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Media.Animation;
 using Microsoft.UI.Xaml.Navigation;
 using QuickDraw.Contracts.Services;
 using QuickDraw.Contracts.ViewModels;
@@ -75,7 +76,7 @@ internal class NavigationService(IPageService pageService) : INavigationService
         return false;
     }
 
-    public bool NavigateTo(string pageKey, object? parameter = null, bool clearNavigation = false)
+    public bool NavigateTo(string pageKey, object? parameter = null, bool clearNavigation = false, NavigationTransitionInfo? transitionInfo = null)
     {
         var pageType = _pageService.GetPageType(pageKey);
 
@@ -84,7 +85,17 @@ internal class NavigationService(IPageService pageService) : INavigationService
         {
             _frame.Tag = clearNavigation;
             var vmBeforeNavigation = _frame.GetPageViewModel();
-            var navigated = _frame.Navigate(pageType, parameter);
+
+            var navigated = false;
+            if (transitionInfo != null)
+            {
+                navigated = _frame.Navigate(pageType, parameter, transitionInfo);
+            }
+            else
+            {
+                navigated = _frame.Navigate(pageType, parameter);
+            }
+
             if (navigated)
             {
                 _lastParameterUsed = parameter;

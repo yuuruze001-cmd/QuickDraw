@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.Input;
 using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Media.Animation;
 using QuickDraw.Contracts.Services;
 using QuickDraw.Contracts.ViewModels;
 using QuickDraw.Core.Models;
@@ -37,7 +38,7 @@ public partial class MainViewModel : Base.ViewModelWithToolbarBase, INavigationA
     private void StartSlideShow()
     {
         // TODO: move actual logic here to start this
-        _navigationService.NavigateTo(typeof(SlideViewModel).FullName!);
+        _navigationService.NavigateTo(typeof(SlideViewModel).FullName!, null, false, new SlideNavigationTransitionInfo { Effect = SlideNavigationTransitionEffect.FromRight });
     }
 
     public async void OnNavigatedTo(object parameter)

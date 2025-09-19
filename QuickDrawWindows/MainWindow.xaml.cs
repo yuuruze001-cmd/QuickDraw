@@ -36,14 +36,4 @@ public sealed partial class MainWindow : Window
         Debug.WriteLine(titlebar.ButtonPressedForegroundColor);
 
     }
-
-    public void NavigateToSlideshow()
-    {
-        MainFrame.Navigate(typeof(SlidePage2), null, new SlideNavigationTransitionInfo { Effect = SlideNavigationTransitionEffect.FromRight });
-    }
-
-    public void NavigateToMain()
-    {
-        MainFrame.Navigate(typeof(MainPage), null, new SlideNavigationTransitionInfo { Effect = SlideNavigationTransitionEffect.FromLeft });
-    }
 }

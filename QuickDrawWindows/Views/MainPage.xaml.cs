@@ -1,28 +1,14 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Data;
-using Microsoft.UI.Xaml.Input;
+using QuickDraw.ViewModels;
+using Syncfusion.UI.Xaml.Sliders;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.Diagnostics;
-using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.InteropServices;
-using Windows.Foundation;
-using System.Threading.Tasks;
-using System.Text.Json;
-using Windows.Storage;
-using System.Collections.ObjectModel;
-using System.Text.Json.Serialization;
-using CommunityToolkit.WinUI;
-using System.ComponentModel;
-using Windows.ApplicationModel.Store;
-using QuickDraw.Core.Models;
 using System.Security.Cryptography;
-using Syncfusion.UI.Xaml.Sliders;
-using QuickDraw.ViewModels;
 
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
