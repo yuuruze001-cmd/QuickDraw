@@ -59,12 +59,21 @@ internal class NavigationService(IPageService pageService) : INavigationService
         }
     }
 
-    public bool GoBack()
+    public bool GoBack(NavigationTransitionInfo? transitionInfo = null)
     {
         if (CanGoBack)
         {
             var vmBeforeNavigation = _frame.GetPageViewModel();
-            _frame.GoBack();
+
+            if (transitionInfo != null)
+            {
+                _frame.GoBack(transitionInfo);
+            }
+            else
+            {
+                _frame.GoBack();
+            }
+            
             if (vmBeforeNavigation is INavigationAware navigationAware)
             {
                 navigationAware.OnNavigatedFrom();

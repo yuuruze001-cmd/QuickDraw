@@ -20,7 +20,7 @@ public interface INavigationService
 
     bool NavigateTo(string pageKey, object? parameter = null, bool clearNavigation = false, NavigationTransitionInfo? transitionInfo = null);
 
-    bool GoBack();
+    bool GoBack(NavigationTransitionInfo? transitionInfo = null);
 
     void SetListDataItemForNextConnectedAnimation(object item);
 }

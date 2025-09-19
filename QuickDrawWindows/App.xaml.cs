@@ -10,14 +10,8 @@ using System;
 using System.IO;
 using System.Reflection;
 
-// To learn more about WinUI, the WinUI project structure,
-// and more about our project templates, see: http://aka.ms/winui-project-info.
-
 namespace QuickDraw;
 
-/// <summary>
-/// Provides application-specific behavior to supplement the default Application class.
-/// </summary>
 public partial class App : Application
 {
     public IHost Host
@@ -36,10 +30,6 @@ public partial class App : Application
         return service;
     }
 
-    /// <summary>
-    /// Initializes the singleton application object.  This is the first line of authored code
-    /// executed, and as such is the logical equivalent of main() or WinMain().
-    /// </summary>
     public App()
     {
         // TODO: Move to App SDK 1.8 (currently syncfusion doesn't work with that version)
@@ -97,17 +87,12 @@ public partial class App : Application
             Build();
     }
 
-    /// <summary>
-    /// Invoked when the application is launched.
-    /// </summary>
-    /// <param name="args">Details about the launch request and process.</param>
     protected async override void OnLaunched(LaunchActivatedEventArgs args)
     {
         base.OnLaunched(args);
 
         await App.GetService<IActivationService>().ActivateAsync(args);
     }
-
 
     public static MainWindow Window { get; } = new();
 }

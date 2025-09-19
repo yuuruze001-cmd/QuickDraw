@@ -22,6 +22,7 @@
         <local:SlideTitlebarControl
             x:Name="AppTitleBar"
             Grid.Row="0"
+            BackButtonCommand="{x:Bind ViewModel.GoBackCommand}"
             GrayscaleButtonCommand="{x:Bind ViewModel.ToggleGrayscaleCommand}"
             LeftInset="{x:Bind ViewModel.TitlebarLeftInset}"
             Progress="50" />

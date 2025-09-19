@@ -2,18 +2,16 @@
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
-using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Media.Animation;
 using QuickDraw.Contracts.Services;
 using QuickDraw.Contracts.ViewModels;
 using QuickDraw.Services;
 using System;
-using System.ComponentModel;
 using System.Threading.Tasks;
-using System.Windows.Input;
 
 namespace QuickDraw.ViewModels;
 
-public partial class SlideViewModel(ITitlebarService titlebarService) : Base.ViewModelWithToolbarBase(titlebarService), INavigationAware
+public partial class SlideViewModel(ITitlebarService titlebarService, INavigationService navigationService) : Base.ViewModelWithToolbarBase(titlebarService), INavigationAware
 {
     public event EventHandler? InvalidateCanvas;
 
@@ -22,6 +20,12 @@ public partial class SlideViewModel(ITitlebarService titlebarService) : Base.Vie
 
     [RelayCommand]
     private void ToggleGrayscale() => Grayscale = !Grayscale;
+
+    [RelayCommand]
+    public void GoBack()
+    {
+        navigationService.GoBack(new SlideNavigationTransitionInfo { Effect = SlideNavigationTransitionEffect.FromLeft });
+    }
 
     partial void OnGrayscaleChanged(bool oldValue, bool newValue)
     {
@@ -37,8 +41,8 @@ public partial class SlideViewModel(ITitlebarService titlebarService) : Base.Vie
 
         await Task.Delay(delay);
 
-        TitlebarService.TitleBar.PreferredHeightOption = TitleBarHeightOption.Tall;
-        TitlebarService.TitleBar.IconShowOptions = IconShowOptions.HideIconAndSystemMenu;
+        TitlebarService?.TitleBar?.PreferredHeightOption = TitleBarHeightOption.Tall;
+        TitlebarService?.TitleBar?.IconShowOptions = IconShowOptions.HideIconAndSystemMenu;
     }
 
     public void OnNavigatedFrom() {}

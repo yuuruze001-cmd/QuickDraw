@@ -2,7 +2,6 @@
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
-using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media.Animation;
 using QuickDraw.Contracts.Services;
 using QuickDraw.Contracts.ViewModels;
@@ -11,7 +10,6 @@ using System;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Windows.Input;
 
 namespace QuickDraw.ViewModels;
 
@@ -38,7 +36,8 @@ public partial class MainViewModel : Base.ViewModelWithToolbarBase, INavigationA
     private void StartSlideShow()
     {
         // TODO: move actual logic here to start this
-        _navigationService.NavigateTo(typeof(SlideViewModel).FullName!, null, false, new SlideNavigationTransitionInfo { Effect = SlideNavigationTransitionEffect.FromRight });
+        _navigationService.NavigateTo(typeof(SlideViewModel).FullName!, null, false, 
+            new SlideNavigationTransitionInfo { Effect = SlideNavigationTransitionEffect.FromRight });
     }
 
     public async void OnNavigatedTo(object parameter)
@@ -47,8 +46,8 @@ public partial class MainViewModel : Base.ViewModelWithToolbarBase, INavigationA
 
         await Task.Delay(delay);
 
-        TitlebarService.TitleBar.PreferredHeightOption = TitleBarHeightOption.Standard;
-        TitlebarService.TitleBar.IconShowOptions = IconShowOptions.ShowIconAndSystemMenu;
+        TitlebarService?.TitleBar?.PreferredHeightOption = TitleBarHeightOption.Standard;
+        TitlebarService?.TitleBar?.IconShowOptions = IconShowOptions.ShowIconAndSystemMenu;
     }
 
     public void OnNavigatedFrom() { }
