@@ -12,4 +12,6 @@ public interface ITitlebarService
 
     public void Initialize(Window window);
 
+    public double Scale { get; }
+
 }

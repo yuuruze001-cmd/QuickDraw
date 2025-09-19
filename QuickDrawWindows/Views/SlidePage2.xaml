@@ -23,9 +23,13 @@
             x:Name="AppTitleBar"
             Grid.Row="0"
             BackButtonCommand="{x:Bind ViewModel.GoBackCommand}"
+            DragRegionsChanged="{x:Bind ViewModel.HandleDragRegionsChanged}"
             GrayscaleButtonCommand="{x:Bind ViewModel.ToggleGrayscaleCommand}"
+            Inactive="{x:Bind ViewModel.TitlebarInactive, Mode=OneWay}"
             LeftInset="{x:Bind ViewModel.TitlebarLeftInset}"
-            Progress="50" />
+            PauseVisibility="{x:Bind ViewModel.PauseVisibility, Mode=OneWay}"
+            Progress="50"
+            TitlebarService="{x:Bind ViewModel.TitlebarService}" />
         <local:MFPointerGrid x:Name="SlideCanvasContainer" Grid.Row="1">
             <canvas:CanvasControl
                 x:Name="SlideCanvas"

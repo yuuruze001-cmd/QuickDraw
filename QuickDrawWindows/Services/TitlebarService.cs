@@ -44,4 +44,6 @@ public class TitlebarService : ITitlebarService
 
     public GridLength LeftInset => _leftInset;
     public GridLength RightInset => _rightInset;
+
+    public double Scale => _scale;
 }

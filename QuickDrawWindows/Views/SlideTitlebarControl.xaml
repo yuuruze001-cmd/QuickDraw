@@ -7,6 +7,7 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="using:QuickDraw.Views"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    SizeChanged="TitlebarBaseControl_SizeChanged"
     mc:Ignorable="d">
 
     <Grid
@@ -85,7 +86,8 @@
                     Margin="10,0,0,0"
                     Padding="12,12,12,12"
                     BorderThickness="0"
-                    Command="{x:Bind PauseButtonCommand}">
+                    Command="{x:Bind PauseButtonCommand}"
+                    Visibility="{x:Bind PauseVisibility, Mode=OneWay}">
                     <Viewbox Width="16" Height="16">
                         <SymbolIcon x:Name="PauseButtonSymbol" Symbol="Pause" />
                     </Viewbox>
@@ -114,7 +116,6 @@
 
         <VisualStateManager.VisualStateGroups>
             <VisualStateGroup>
-
                 <VisualStateGroup.Transitions>
                     <VisualTransition To="Inactive">
                         <VisualTransition.GeneratedEasingFunction>
@@ -134,6 +135,35 @@
                     </VisualState.StateTriggers>
                     <VisualState.Setters>
                         <Setter Target="PauseButtonSymbol.Symbol" Value="Play" />
+                    </VisualState.Setters>
+                </VisualState>
+            </VisualStateGroup>
+            <VisualStateGroup>
+
+                <VisualStateGroup.Transitions>
+                    <VisualTransition To="InactiveState">
+                        <VisualTransition.GeneratedEasingFunction>
+                            <CubicEase EasingMode="EaseIn" />
+                        </VisualTransition.GeneratedEasingFunction>
+                    </VisualTransition>
+                    <VisualTransition From="InactiveState">
+                        <VisualTransition.GeneratedEasingFunction>
+                            <CubicEase EasingMode="EaseIn" />
+                        </VisualTransition.GeneratedEasingFunction>
+                    </VisualTransition>
+                </VisualStateGroup.Transitions>
+
+                <VisualState x:Name="InactiveState">
+                    <VisualState.StateTriggers>
+                        <StateTrigger IsActive="{x:Bind Inactive, Mode=OneWay}" />
+                    </VisualState.StateTriggers>
+                    <VisualState.Setters>
+                        <Setter Target="GrayscaleButton.Foreground" Value="{StaticResource WindowCaptionForegroundDisabled}" />
+                        <Setter Target="NextButton.Foreground" Value="{StaticResource WindowCaptionForegroundDisabled}" />
+                        <Setter Target="PreviousButton.Foreground" Value="{StaticResource WindowCaptionForegroundDisabled}" />
+                        <Setter Target="PauseButton.Foreground" Value="{StaticResource WindowCaptionForegroundDisabled}" />
+                        <Setter Target="BackButton.Foreground" Value="{StaticResource WindowCaptionForegroundDisabled}" />
+                        <Setter Target="ProgressBar.Foreground" Value="{StaticResource WindowCaptionForegroundDisabled}" />
                     </VisualState.Setters>
                 </VisualState>
             </VisualStateGroup>

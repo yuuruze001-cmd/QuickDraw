@@ -1,29 +1,31 @@
+using DependencyPropertyGenerator;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
+using QuickDraw.Utilities;
 using QuickDraw.Views.Base;
+using Windows.Graphics;
 
 namespace QuickDraw.Views;
 
 public sealed partial class MainTitlebarControl : Base.TitlebarBaseControl
 {
-    public bool Disabled
-    {
-        get { return (bool)GetValue(DisabledProperty); }
-        set { SetValue(DisabledProperty, value); }
-    }
-    public static readonly DependencyProperty DisabledProperty = DependencyProperty.Register(
-        nameof(Disabled),
-        typeof(bool),
-        typeof(SlideTitlebarControl),
-        new PropertyMetadata(false)
-    );
-
     public MainTitlebarControl()
     {
-        this.Resources["WindowCaptionForegroundColor"] = (Application.Current.Resources["WindowCaptionForeground"] as SolidColorBrush)?.Color;
-        this.Resources["WindowCaptionForegroundDisabledColor"] = (Application.Current.Resources["WindowCaptionForegroundDisabled"] as SolidColorBrush)?.Color;
-
         InitializeComponent();
+    }
+
+    protected override RectInt32[] CalculateDragRegions()
+    {
+        var scale = TitlebarService?.Scale ?? 1.0;
+
+        RectInt32 dragRect = new(
+            (int)(LeftInset.Value),
+            0,
+            (int)(TitleColumn.ActualWidth * scale),
+            (int)(ActualHeight * scale)
+        );
+
+        return [dragRect];
     }
 }

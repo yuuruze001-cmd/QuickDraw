@@ -7,6 +7,7 @@ using QuickDraw.Contracts.Services;
 using QuickDraw.Contracts.ViewModels;
 using QuickDraw.Services;
 using System;
+using System.ComponentModel;
 using System.Threading.Tasks;
 
 namespace QuickDraw.ViewModels;
@@ -18,14 +19,14 @@ public partial class SlideViewModel(ITitlebarService titlebarService, INavigatio
     [ObservableProperty]
     public partial bool Grayscale { get; set; }
 
+    [ObservableProperty]
+    public partial Visibility PauseVisibility { get; set; }
+
     [RelayCommand]
     private void ToggleGrayscale() => Grayscale = !Grayscale;
 
     [RelayCommand]
-    public void GoBack()
-    {
-        navigationService.GoBack(new SlideNavigationTransitionInfo { Effect = SlideNavigationTransitionEffect.FromLeft });
-    }
+    public void GoBack() => navigationService.GoBack();
 
     partial void OnGrayscaleChanged(bool oldValue, bool newValue)
     {
@@ -37,6 +38,10 @@ public partial class SlideViewModel(ITitlebarService titlebarService, INavigatio
 
     public async void OnNavigatedTo(object parameter) 
     {
+        // TODO: toggle pause visibility based on if there is a timer or not
+        // eg. if SlideTimerDuration == Models.TimerEnum.NoLimit
+        // Might be a better place, eg if we have the view bind one of their initilization events to the VM
+
         var delay = TimeSpan.Parse((string)Application.Current.Resources["ControlFastAnimationDuration"]);
 
         await Task.Delay(delay);

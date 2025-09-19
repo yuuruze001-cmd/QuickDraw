@@ -7,8 +7,8 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="using:QuickDraw.Views"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    SizeChanged="TitlebarBaseControl_SizeChanged"
     mc:Ignorable="d">
-
 
     <Grid
         x:Name="LayoutRoot"
@@ -35,40 +35,32 @@
                 Margin="14,0,14,0"
                 VerticalAlignment="Center"
                 Text="QuickDraw"
-                TextWrapping="NoWrap">
-                <TextBlock.Foreground>
-                    <SolidColorBrush x:Name="AppTitleTextBlockForeground" Color="{StaticResource WindowCaptionForegroundColor}" />
-                </TextBlock.Foreground>
-            </TextBlock>
+                TextWrapping="NoWrap" />
         </StackPanel>
 
         <VisualStateManager.VisualStateGroups>
             <VisualStateGroup>
 
                 <VisualStateGroup.Transitions>
-                    <VisualTransition To="Inactive">
+                    <VisualTransition To="InactiveState">
                         <VisualTransition.GeneratedEasingFunction>
                             <CubicEase EasingMode="EaseIn" />
                         </VisualTransition.GeneratedEasingFunction>
                     </VisualTransition>
-                    <VisualTransition From="Inactive">
+                    <VisualTransition From="InactiveState">
                         <VisualTransition.GeneratedEasingFunction>
                             <CubicEase EasingMode="EaseIn" />
                         </VisualTransition.GeneratedEasingFunction>
                     </VisualTransition>
                 </VisualStateGroup.Transitions>
 
-                <VisualState x:Name="Inactive">
+                <VisualState x:Name="InactiveState">
                     <VisualState.StateTriggers>
-                        <StateTrigger IsActive="{x:Bind Disabled}" />
+                        <StateTrigger IsActive="{x:Bind Inactive, Mode=OneWay}" />
                     </VisualState.StateTriggers>
-                    <Storyboard>
-                        <ColorAnimation
-                            Storyboard.TargetName="AppTitleTextBlockForeground"
-                            Storyboard.TargetProperty="Color"
-                            To="{StaticResource WindowCaptionForegroundDisabledColor}"
-                            Duration="{StaticResource ControlFasterAnimationDuration}" />
-                    </Storyboard>
+                    <VisualState.Setters>
+                        <Setter Target="AppTitleTextBlock.Foreground" Value="{StaticResource WindowCaptionForegroundDisabled}" />
+                    </VisualState.Setters>
                 </VisualState>
             </VisualStateGroup>
         </VisualStateManager.VisualStateGroups>

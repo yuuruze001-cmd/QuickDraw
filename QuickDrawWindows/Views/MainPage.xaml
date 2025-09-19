@@ -32,7 +32,11 @@
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
-        <local:MainTitlebarControl x:Name="AppTitleBar" Grid.Row="0" />
+        <local:MainTitlebarControl
+            x:Name="AppTitleBar"
+            Grid.Row="0"
+            DragRegionsChanged="{x:Bind ViewModel.HandleDragRegionsChanged}"
+            Inactive="{x:Bind ViewModel.TitlebarInactive, Mode=OneWay}" />
 
         <Grid
             x:Name="MainGrid"
