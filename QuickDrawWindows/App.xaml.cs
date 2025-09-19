@@ -104,15 +104,6 @@ public partial class App : Application
     protected async override void OnLaunched(LaunchActivatedEventArgs args)
     {
         base.OnLaunched(args);
-        /*            Settings.ReadSettings();
-
-
-                    var presenter = OverlappedPresenter.Create();
-
-                    presenter.PreferredMinimumWidth = 512;
-                    presenter.PreferredMinimumHeight = 312;
-                    Window.AppWindow.SetPresenter(presenter);
-                    Window.Activate();*/
 
         await App.GetService<IActivationService>().ActivateAsync(args);
     }

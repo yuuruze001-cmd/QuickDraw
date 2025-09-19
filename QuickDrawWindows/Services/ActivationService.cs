@@ -1,4 +1,5 @@
-﻿using Microsoft.UI.Xaml;
+﻿using Microsoft.UI.Windowing;
+using Microsoft.UI.Xaml;
 using QuickDraw.Activation;
 using QuickDraw.Contracts.Services;
 using System;
@@ -45,6 +46,12 @@ public class ActivationService(ActivationHandler<LaunchActivatedEventArgs> defau
 
     private async Task StartupAsync()
     {
+        var presenter = OverlappedPresenter.Create();
+
+        presenter.PreferredMinimumWidth = 512;
+        presenter.PreferredMinimumHeight = 312;
+        App.Window.AppWindow.SetPresenter(presenter);
+
         await Task.CompletedTask;
     }
 }
