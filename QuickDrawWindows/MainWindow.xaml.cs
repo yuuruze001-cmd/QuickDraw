@@ -1,6 +1,7 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Animation;
+using QuickDraw.Contracts.Services;
 using QuickDraw.Views;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -20,20 +21,7 @@ public sealed partial class MainWindow : Window
     {
         this.InitializeComponent();
 
-        var titlebar = this.AppWindow.TitleBar;
-        titlebar.ExtendsContentIntoTitleBar = true;
-        titlebar.ButtonBackgroundColor = ((SolidColorBrush)Application.Current.Resources["WindowCaptionButtonBackground"]).Color;
-        titlebar.ButtonHoverBackgroundColor = ((SolidColorBrush)Application.Current.Resources["WindowCaptionButtonBackgroundPointerOver"]).Color;
-        titlebar.ButtonPressedBackgroundColor = ((SolidColorBrush)Application.Current.Resources["WindowCaptionButtonBackgroundPressed"]).Color;
-        titlebar.ButtonInactiveBackgroundColor = ((SolidColorBrush)Application.Current.Resources["WindowCaptionBackgroundDisabled"]).Color;
-
-        titlebar.ButtonForegroundColor = ((SolidColorBrush)Application.Current.Resources["WindowCaptionButtonStroke"]).Color;
-        titlebar.ButtonHoverForegroundColor = ((SolidColorBrush)Application.Current.Resources["WindowCaptionButtonStrokePointerOver"]).Color;
-        titlebar.ButtonPressedForegroundColor = ((SolidColorBrush)Application.Current.Resources["WindowCaptionButtonStrokePressed"]).Color;
-        
-        titlebar.ButtonInactiveForegroundColor = Color.FromArgb(0xff, 0x66,0x66, 0x66); //WindowCaptionForegroundDisabled converted to gray with no alpha, for some reason alpha is ignored here
-        //titlebar.ButtonInactiveForegroundColor = ((SolidColorBrush)Application.Current.Resources["WindowCaptionForegroundDisabled"]).Color;
-        Debug.WriteLine(titlebar.ButtonPressedForegroundColor);
-
+        // Do this here so it's appearance is correct from the hop
+        App.GetService<ITitlebarService>().Initialize(this);
     }
 }

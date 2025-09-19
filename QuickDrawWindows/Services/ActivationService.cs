@@ -9,12 +9,8 @@ using System.Threading.Tasks;
 
 namespace QuickDraw.Services;
 
-public class ActivationService(ActivationHandler<LaunchActivatedEventArgs> defaultHandler, IEnumerable<IActivationHandler> activationHandlers, ISettingsService settingsService) : IActivationService
+public class ActivationService(ActivationHandler<LaunchActivatedEventArgs> defaultHandler, IEnumerable<IActivationHandler> activationHandlers, ISettingsService settingsService, ITitlebarService titlebarService) : IActivationService
 {
-    private readonly ActivationHandler<LaunchActivatedEventArgs> _defaultHandler = defaultHandler;
-    private readonly IEnumerable<IActivationHandler> _activationHandlers = activationHandlers;
-    private readonly ISettingsService _settingsService = settingsService;
-
     public async Task ActivateAsync(object activationArgs)
     {
         await InitializeAsync();
@@ -28,22 +24,22 @@ public class ActivationService(ActivationHandler<LaunchActivatedEventArgs> defau
 
     private async Task HandleActivationAsync(object activationArgs)
     {
-        var activationHandler = _activationHandlers.FirstOrDefault(h => h.CanHandle(activationArgs));
+        var activationHandler = activationHandlers.FirstOrDefault(h => h.CanHandle(activationArgs));
 
         if (activationHandler != null)
         {
             await activationHandler.HandleAsync(activationArgs);
         }
 
-        if (_defaultHandler.CanHandle(activationArgs))
+        if (defaultHandler.CanHandle(activationArgs))
         {
-            await _defaultHandler.HandleAsync(activationArgs);
+            await defaultHandler.HandleAsync(activationArgs);
         }
     }
 
     private async Task InitializeAsync()
     {
-        await _settingsService.InitializeAsync().ConfigureAwait(false);
+        await settingsService.InitializeAsync().ConfigureAwait(false);
         await Task.CompletedTask;
     }
 
