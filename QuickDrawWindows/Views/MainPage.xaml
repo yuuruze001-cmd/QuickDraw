@@ -76,7 +76,7 @@
                     StepFrequency="1"
                     ToolTipFormat="N0"
                     ToolTipTemplate="{StaticResource ToolTipTemplate}"
-                    Value="{x:Bind ViewModel.TimerSiderValue}" />
+                    Value="{x:Bind ViewModel.TimerSliderValue, Mode=TwoWay}" />
 
 
                 <!--<RadioButtons Header="Time Per Image" MaxColumns="5" VerticalContentAlignment="Center" Grid.Column="0" VerticalAlignment="Center">

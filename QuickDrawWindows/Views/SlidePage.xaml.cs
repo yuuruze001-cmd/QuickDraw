@@ -2,21 +2,14 @@ using Microsoft.Graphics.Canvas;
 using Microsoft.Graphics.Canvas.Effects;
 using Microsoft.Graphics.Canvas.UI;
 using Microsoft.Graphics.Canvas.UI.Xaml;
-using Microsoft.UI.Dispatching;
 using Microsoft.UI.Input;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Input;
 using QuickDraw.ViewModels;
 using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
-using System.Linq;
-using System.Runtime.InteropServices.WindowsRuntime;
+using System.Collections.Concurrent;
 using System.Threading.Tasks;
 using Windows.Foundation;
-using Windows.Storage;
 
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
@@ -27,7 +20,7 @@ public partial class MFPointerGrid : Grid
 {
     public MFPointerGrid() : base()
     {
-        
+
     }
 
     public void SetCursor(InputCursor? cursor)
@@ -36,453 +29,231 @@ public partial class MFPointerGrid : Grid
     }
 }
 
-enum LoadDirection
-{
-    Backwards,
-    Forwards
-}
-
-/// <summary>
-/// An empty page that can be used on its own or navigated to within a Frame.
-/// </summary>
 public sealed partial class SlidePage : Page
 {
+    // TODO: Implement clicking the image to open it in explorer
+    private Task? _initImageLoadTask;
+
+    private (string, CanvasVirtualBitmap?) _currentBitmap;
+    private (string, CanvasVirtualBitmap?) _nextBitmap;
+    private (string, CanvasVirtualBitmap?) _prevBitmap;
+
+    private Task? _currentTask;
+
+    private readonly ConcurrentQueue<Func<Task>> _loadTaskQueue = new();
+
     public SlideViewModel ViewModel
     {
         get;
     }
 
-    private const int CACHE_SIZE = 9;
-    private const int HALF_CACHE_SIZE = CACHE_SIZE / 2;
-
-    private List<string>? imagePaths = null;
-
-    private readonly LinkedList<CanvasVirtualBitmap> cachedImages = new();
-
-    private LinkedListNode<CanvasVirtualBitmap>? currentImageNode = null;
-    private int imageCachePosition = 0;
-    private Task? imageLoadTask;
-
-    private bool grayscale = false;
-
-    // TODO: Switch to Semaphores, locks don't work properly with async
-    private readonly object cachedImagesLock = new();
-    private readonly object currentImageNodeLock = new();
-
-    private readonly DispatcherQueueTimer? m_SlideTimer = null;
-
-    private uint m_TicksElapsed = 0;
-
-    private TaskCompletionSource<bool> imageCacheFilled = new();
-
-    private Rect? currentImageBoundsInView = null;
-
     public SlidePage()
     {
         ViewModel = App.GetService<SlideViewModel>();
+        ViewModel.InvalidateCanvas += ViewModel_InvalidateCanvas;
+        ViewModel.NextImageHandler += (sender, args) => NextImage(args.ImagePath);
+        ViewModel.PreviousImageHandler += (sender, args) => PrevImage(args.ImagePath);
+
+        CanvasDevice.DebugLevel = CanvasDebugLevel.Information;
 
         this.InitializeComponent();
+    }
 
-       /* var settings = (App.Current as App)?.Settings;
-        imagePaths = settings?.SlidePaths;
+    private async Task LoadNextTask(ICanvasResourceCreator resourceCreator, string imagePath)
+    {
+        _prevBitmap.Item2?.Dispose();
+        _prevBitmap = _currentBitmap;
+        SlideCanvas?.Invalidate();
+        _currentBitmap = _nextBitmap;
+        _nextBitmap = (imagePath, null);
+        _nextBitmap = (imagePath, await CanvasVirtualBitmap.LoadAsync(resourceCreator, imagePath));
+    }
 
-        var timerDurationEnum = settings?.SlideTimerDuration ?? TimerEnum.NoLimit;
+    private async Task LoadPrevTask(ICanvasResourceCreator resourceCreator, string imagePath)
+    {
+        _nextBitmap.Item2?.Dispose();
+        _nextBitmap = _currentBitmap;
+        SlideCanvas?.Invalidate();
+        _currentBitmap = _prevBitmap;
 
-        this.Unloaded += SlidePage_Unloaded;
+        _prevBitmap = (imagePath, null);
+        _prevBitmap = (imagePath, await CanvasVirtualBitmap.LoadAsync(resourceCreator, imagePath));
+    }
 
-        if (timerDurationEnum != TimerEnum.NoLimit)
+    private void TaskContinue()
+    {
+        if (!_loadTaskQueue.IsEmpty)
         {
-            var timerDuration = timerDurationEnum.ToSeconds();
-            m_SlideTimer = DispatcherQueue.CreateTimer();
-            m_SlideTimer.IsRepeating = true;
-            m_SlideTimer.Interval = new(TimeSpan.TicksPerMillisecond * (long)1000);
-            m_SlideTimer.Tick += async (sender, e) =>
+            if (_loadTaskQueue.TryDequeue(out var dequeueResult))
             {
-                m_TicksElapsed += 1;
-                AppTitleBar.Progress = (double)m_TicksElapsed / (double)timerDuration;
-                if (m_TicksElapsed >= timerDuration)
-                {
-                    m_TicksElapsed = 0;
+                _currentTask = dequeueResult().ContinueWith(task => {
+                    TaskContinue();
+                });
+            }
+        }
+        else
+        {
+            _currentTask = null;
+        }
+    }
 
-                    await Move(LoadDirection.Forwards);
+    public void NextImage(string imagePath)
+    {
+        if (_currentTask == null)
+        {
+            _currentTask = LoadNextTask(SlideCanvas, imagePath).ContinueWith(task =>
+            {
+                TaskContinue();
+            });
+        }
+        else
+        {
+            _loadTaskQueue.Enqueue(() => LoadNextTask(SlideCanvas, imagePath));
+        }
+    }
 
-                    await Task.Delay(100);
-                    AppTitleBar.Progress = 0;
+    public void PrevImage(string imagePath)
+    {
+        if (_currentTask == null)
+        {
+            _currentTask = LoadPrevTask(SlideCanvas, imagePath).ContinueWith(task =>
+            {
+                TaskContinue();
+            });
+        }
+        else
+        {
+            _loadTaskQueue.Enqueue(() => LoadPrevTask(SlideCanvas, imagePath));
+        }
+    }
 
-                }
-            };
-            m_SlideTimer.Start();
-        }*/
+    private void ViewModel_InvalidateCanvas(object? sender, EventArgs e)
+    {
+        SlideCanvas.Invalidate();
     }
 
     void SlidePage_Unloaded(object sender, RoutedEventArgs e)
     {
-        this.m_SlideTimer?.Stop();
         this.SlideCanvas.RemoveFromVisualTree();
         this.SlideCanvas = null;
     }
 
     private void CanvasControl_Draw(CanvasControl sender, CanvasDrawEventArgs args)
     {
-        HandleLoadExceptions();
-        bool isCurrentImageNull = true;
-
-        lock (currentImageNodeLock)
+        if (!IsLoadInProgress())
         {
-            isCurrentImageNull = currentImageNode == null;
-        }
-
-        if (!isCurrentImageNull)
-        {
-            CanvasVirtualBitmap? bitmap;
-
-            lock (currentImageNodeLock)
-            {
-                bitmap = currentImageNode?.Value;
-            }
-
+            var bitmap = _currentBitmap.Item2;
+            #region Draw the image.
             if (bitmap != null)
             {
-
-                Size canvasSize = new(sender.ActualWidth, sender.ActualHeight);
-                double canvasAspect = canvasSize.Width / canvasSize.Height;
-                double bitmapAspect = (bitmap?.Bounds.Width ?? 1.0) / (bitmap?.Bounds.Height ?? 1.0);
-                Size imageRenderSize;
-                Point imagePos;
-
-                if (bitmapAspect > canvasAspect)
-                {
-                    imageRenderSize = new Size(
-                        canvasSize.Width,
-                        canvasSize.Width / bitmapAspect
-                    );
-                    imagePos = new Point(0, (canvasSize.Height - imageRenderSize.Height) / 2);
-                }
-                else
-                {
-                    imageRenderSize = new Size(
-                        canvasSize.Height * bitmapAspect,
-                        canvasSize.Height
-                    );
-                    imagePos = new Point((canvasSize.Width - imageRenderSize.Width) / 2, 0);
-                }
-
-                Rect destBounds = new(imagePos, imageRenderSize);
-                currentImageBoundsInView = destBounds;
-
                 CanvasCommandList cl = new(sender);
+                _ = DrawBitmapToView(ref cl, bitmap, new Size(sender.ActualWidth, sender.ActualHeight), ViewModel.Grayscale);
 
-                using (CanvasDrawingSession clds = cl.CreateDrawingSession())
-                {
-                    clds.DrawImage(bitmap, destBounds, bitmap?.Bounds ?? new Rect());
-                }
-
-                if (grayscale)
-                {
-                    GrayscaleEffect grayscale = new()
-                    {
-                        Source = bitmap
-                    };
-                    args.DrawingSession.DrawImage(grayscale, destBounds, bitmap?.Bounds ?? new Rect());
-                }
-                else
-                {
-                    args.DrawingSession.DrawImage(cl);
-                }
+                args.DrawingSession.DrawImage(cl);
             }
+            #endregion
         }
     }
-    
-    private void LoadImageInit()
+
+    private bool IsLoadInProgress()
     {
-        Debug.Assert(imageLoadTask == null);
-        imageLoadTask = FillImageCacheAsync(this.SlideCanvas, imageCachePosition).ContinueWith(_ => {
-            SlideCanvas.Invalidate(); 
-        });
+        // No loading task?
+        if (_initImageLoadTask == null)
+            return false;
+
+        // Loading task is still running?
+        if (!_initImageLoadTask.IsCompleted)
+            return true;
+
+        // Query the load task results and re-throw any exceptions
+        // so Win2D can see them. This implements requirement #2.
+        try
+        {
+            _initImageLoadTask.Wait();
+        }
+        catch (AggregateException aggregateException)
+        {
+            // .NET async tasks wrap all errors in an AggregateException.
+            // We unpack this so Win2D can directly see any lost device errors.
+            aggregateException.Handle(exception => { throw exception; });
+        }
+        finally
+        {
+            _initImageLoadTask = null;
+        }
+
+        return false;
     }
 
-    private static int Mod (int n, int d)
+    private static Rect? DrawBitmapToView(ref CanvasCommandList cl, CanvasVirtualBitmap? bitmap, Size canvasSize, bool grayscale)
     {
-        int r = n % d;
-        return r < 0 ? r+d : r;
-    }
+        if (bitmap == null)
+            return null;
 
-    private async Task FillImageCacheAsync(CanvasControl resourceCreator, int index)
-    {
-        if (imagePaths == null)
+        double canvasAspect = canvasSize.Width / canvasSize.Height;
+        double bitmapAspect = (bitmap?.Bounds.Width ?? 1.0) / (bitmap?.Bounds.Height ?? 1.0);
+        Size imageRenderSize;
+        Point imagePos;
+
+        if (bitmapAspect > canvasAspect)
         {
-            // TODO: Log
-            return;
+            imageRenderSize = new Size(
+                canvasSize.Width,
+                canvasSize.Width / bitmapAspect
+            );
+            imagePos = new Point(0, (canvasSize.Height - imageRenderSize.Height) / 2);
         }
-        var bitmap = await CanvasVirtualBitmap.LoadAsync(resourceCreator, imagePaths[index]);
-
-        lock (currentImageNodeLock)
+        else
         {
-            currentImageNode = cachedImages.AddFirst(bitmap);
-        }
-
-        lock (cachedImagesLock)
-        {
-            imageCachePosition = index;
-        }
-
-        var remainingCacheSize = Math.Min(imagePaths.Count, CACHE_SIZE) - 1;
-        var numBefore = (remainingCacheSize / 2);
-        var numAfter = (remainingCacheSize / 2) + (remainingCacheSize % 2);
-
-        var beforeImages = Enumerable.Range(index - numBefore, numBefore)
-            .Reverse()
-            .Select(i => Mod(i, imagePaths.Count))
-            .ToArray()
-            .Select(i =>
-            {
-                return imagePaths[i];
-            });
-        var afterImages = Enumerable.Range(index + 1, numAfter)
-            .Select(i => Mod(i, imagePaths.Count))
-            .ToArray()
-            .Select(i =>
-            {
-                return imagePaths[i];
-            });
-
-        async Task LoadBeforeAsync()
-        {
-            foreach (var image in beforeImages)
-            {
-                var bitmap = await CanvasVirtualBitmap.LoadAsync(resourceCreator, image);
-                lock(cachedImagesLock)
-                {
-                    cachedImages.AddFirst(bitmap);
-                }
-            }
+            imageRenderSize = new Size(
+                canvasSize.Height * bitmapAspect,
+                canvasSize.Height
+            );
+            imagePos = new Point((canvasSize.Width - imageRenderSize.Width) / 2, 0);
         }
 
-        async Task LoadAfterAsync()
-        {
-            foreach (var image in afterImages)
-            {
-                var bitmap = await CanvasVirtualBitmap.LoadAsync(resourceCreator, image);
-                lock (cachedImagesLock)
-                {
-                    cachedImages.AddLast(bitmap);
-                }
-            }
-        }
+        Rect destBounds = new(imagePos, imageRenderSize);
 
-        Task loadBeforeTask = Task.Run(LoadBeforeAsync);
-        Task loadAfterTask = Task.Run(LoadAfterAsync);
-        await loadBeforeTask;
-        await loadAfterTask;
+        using CanvasDrawingSession clds = cl.CreateDrawingSession();
 
-        if (!imageCacheFilled.Task.IsCompleted)
-        {
-            imageCacheFilled.SetResult(true);
-        }
+        ICanvasImage? finalImage = grayscale ? new GrayscaleEffect() { Source = bitmap } : bitmap;
+
+        clds.DrawImage(finalImage, destBounds, bitmap?.Bounds ?? new Rect());
+
+        return destBounds;
     }
 
     private void SlideCanvas_CreateResources(CanvasControl sender, CanvasCreateResourcesEventArgs args)
     {
-        args.TrackAsyncAction(CreateResourcesAsync().AsAsyncAction());
+        args.TrackAsyncAction(CreateResourceAsync(sender).AsAsyncAction());
     }
 
-    private async Task CreateResourcesAsync()
+    async Task CreateResourceAsync(CanvasControl sender)
     {
         // Cancel old load
-        if (imageLoadTask != null)
+        if (_initImageLoadTask != null)
         {
-            imageLoadTask.AsAsyncAction().Cancel();
-            try { await imageLoadTask; } catch { }
-            imageLoadTask = null;
+            _initImageLoadTask.AsAsyncAction().Cancel();
+            try { await _initImageLoadTask; } catch { }
+            _initImageLoadTask = null;
 
         }
 
-        // Unload previously loaded images
-       
-        lock (currentImageNodeLock)
-        {
-            currentImageNode = null;
-        }
-
-        lock (cachedImagesLock)
-        { 
-            cachedImages.Clear();
-        }
-
-        imageCacheFilled = new();
-
-        LoadImageInit();
+        _initImageLoadTask = FillImageCacheAsync(sender).ContinueWith(_ => SlideCanvas.Invalidate());
     }
 
-    private void HandleLoadExceptions()
+    private async Task FillImageCacheAsync(CanvasControl resourceCreator)
     {
-        if (imageLoadTask == null || !imageLoadTask.IsCompleted)
-            return;
+        ViewModel.UpdateCurrentImagesCommand?.Execute(null);
 
-        try
-        {
-            imageLoadTask.Wait();
-        }
-        catch(AggregateException aggregateException)
-        {
-            aggregateException.Handle(exception => { throw exception; });
-        }
-    }
+        var prevBitmapTask = CanvasVirtualBitmap.LoadAsync(resourceCreator, ViewModel.PreviousImagePath!);
+        var currBitmapTask = CanvasVirtualBitmap.LoadAsync(resourceCreator, ViewModel.CurrentImagePath!);
+        var nextBitmapTask = CanvasVirtualBitmap.LoadAsync(resourceCreator, ViewModel.NextImagePath!);
 
-    private async Task UpdateImageAsync(CanvasControl resourceCreator, LoadDirection direction)
-    {
-        var increment = direction == LoadDirection.Forwards ? 1 : -1;
-        var halfCache = direction == LoadDirection.Forwards ? HALF_CACHE_SIZE : -HALF_CACHE_SIZE;
+        _prevBitmap = (ViewModel.PreviousImagePath!, await prevBitmapTask);
+        _currentBitmap = (ViewModel.CurrentImagePath!, await currBitmapTask);
+        _nextBitmap = (ViewModel.NextImagePath!, await nextBitmapTask);
 
-        var imageIndex = 0;
-        lock (cachedImagesLock)
-        {
-            imageIndex = Mod(imageCachePosition + increment + halfCache, imagePaths?.Count ?? 0);
-        }
-
-        var bitmap = await CanvasVirtualBitmap.LoadAsync(resourceCreator, imagePaths?[imageIndex]);
-
-        lock (cachedImagesLock)
-        {
-            switch (direction)
-            {
-                case LoadDirection.Backwards:
-                    {
-                        cachedImages.AddFirst(bitmap);
-
-                        cachedImages?.Last?.Value.Dispose();
-                        cachedImages?.RemoveLast();
-                    }
-                    break;
-
-                case LoadDirection.Forwards:
-                    {
-                        cachedImages.AddLast(bitmap);
-
-                        cachedImages?.First?.Value.Dispose();
-                        cachedImages?.RemoveFirst();
-                    }
-                    break;
-            }
-
-            imageCachePosition = Mod(imageCachePosition + increment, imagePaths?.Count ?? 0);
-        }
-    }
-
-    private async Task Move(LoadDirection direction)
-    {
-        await imageCacheFilled.Task;
-
-        if ((imagePaths?.Count ?? 0) > CACHE_SIZE)
-        {
-            await UpdateImageAsync(this.SlideCanvas, direction);
-        }
-
-        if (imagePaths?.Count <= CACHE_SIZE)
-        {
-            lock (currentImageNodeLock)
-            {
-                currentImageNode = direction == LoadDirection.Forwards ?
-                (currentImageNode?.Next ?? cachedImages.First) :
-                (currentImageNode?.Previous ?? cachedImages.Last);
-            }
-        }
-        else
-        {
-            lock (currentImageNodeLock)
-            {
-                currentImageNode = direction == LoadDirection.Forwards ?
-                currentImageNode?.Next :
-                currentImageNode?.Previous;
-            }
-        }
-
-        SlideCanvas?.Invalidate();
-    }
-
-    private async void AppTitleBar_NextButtonClick(object sender, RoutedEventArgs e)
-    {
-        AppTitleBar.Progress = 0;
-        m_TicksElapsed = 0;
-        m_SlideTimer?.Start();
-        await Move(LoadDirection.Forwards);
-    }
-
-    private async void AppTitleBar_PreviousButtonClick(object sender, RoutedEventArgs e)
-    {
-        AppTitleBar.Progress = 0;
-        m_TicksElapsed = 0;
-        m_SlideTimer?.Start();
-        await Move(LoadDirection.Backwards);
-    }
-
-    private void AppTitleBar_GrayscaleButtonClick(object sender, RoutedEventArgs e)
-    {
-        grayscale = !grayscale;
-        SlideCanvas?.Invalidate();
-    }
-
-    private void AppTitleBar_PauseButtonClick(object sender, RoutedEventArgs e)
-    {
-        
-        if (m_SlideTimer?.IsRunning ?? false)
-        {
-            m_SlideTimer.Stop();
-            AppTitleBar.Paused = true;
-        }
-        else
-        {
-            m_SlideTimer?.Start();
-            AppTitleBar.Paused = false;
-        }
-    }
-
-    private void SlideCanvas_PointerReleased(object sender, PointerRoutedEventArgs e)
-    {
-        if (IsPointerEventInImageBounds(e))
-        {
-            var imageIndex = 0;
-            lock (cachedImagesLock)
-            {
-                imageIndex = imageCachePosition;
-            }
-
-            if (imageIndex == -1)
-                return;
-
-            var path = imagePaths?[imageIndex];
-
-            if (path != null)
-            {
-                Task.Run(async () =>
-                {
-                    Windows.System.FolderLauncherOptions launchOptions = new();
-
-                    var hWnd = WinRT.Interop.WindowNative.GetWindowHandle(App.Window);
-                    WinRT.Interop.InitializeWithWindow.Initialize(launchOptions, hWnd);
-
-                    var file = await StorageFile.GetFileFromPathAsync(path);
-                    launchOptions.ItemsToSelect.Add(file);
-                    
-                    await Windows.System.Launcher.LaunchFolderPathAsync(Path.GetDirectoryName(path), launchOptions);
-                });
-            }
-        }
-    }
-
-    private bool IsPointerEventInImageBounds(PointerRoutedEventArgs e)
-    {
-        return currentImageBoundsInView?.Contains(e.GetCurrentPoint(SlideCanvas).Position) ?? false;
-    }
-
-    private void SlideCanvas_PointerMoved(object sender, PointerRoutedEventArgs e)
-    {
-        if (IsPointerEventInImageBounds(e))
-        {
-            SlideCanvasContainer.SetCursor(InputSystemCursor.Create(InputSystemCursorShape.Hand));
-        } else
-        {
-            SlideCanvasContainer.SetCursor(null);
-        }
+        ViewModel.StartTimer(DispatcherQueue);
     }
 }

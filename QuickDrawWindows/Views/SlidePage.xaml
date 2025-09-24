@@ -10,7 +10,6 @@
     Unloaded="SlidePage_Unloaded"
     mc:Ignorable="d">
 
-
     <Page.Background>
         <SolidColorBrush Color="#00000000" />
     </Page.Background>
@@ -23,13 +22,19 @@
         <local:SlideTitlebarControl
             x:Name="AppTitleBar"
             Grid.Row="0"
-            Progress="50" />
-        <!--
-            GrayscaleButtonClick="AppTitleBar_GrayscaleButtonClick"
-            NextButtonClick="AppTitleBar_NextButtonClick"
-            PauseButtonClick="AppTitleBar_PauseButtonClick"
-            PreviousButtonClick="AppTitleBar_PreviousButtonClick"
-        -->
+            BackButtonCommand="{x:Bind ViewModel.GoBackCommand}"
+            DragRegionsChanged="{x:Bind ViewModel.HandleDragRegionsChanged}"
+            GrayscaleButtonCommand="{x:Bind ViewModel.ToggleGrayscaleCommand}"
+            Inactive="{x:Bind ViewModel.TitlebarInactive, Mode=OneWay}"
+            LeftInset="{x:Bind ViewModel.TitlebarLeftInset}"
+            NextButtonCommand="{x:Bind ViewModel.NextImageCommand}"
+            PauseButtonCommand="{x:Bind ViewModel.PausePlayCommand}"
+            PauseVisibility="{x:Bind ViewModel.PauseVisibility, Mode=OneWay}"
+            Paused="{x:Bind ViewModel.Paused, Mode=OneWay}"
+            PreviousButtonCommand="{x:Bind ViewModel.PreviousImageCommand}"
+            Progress="{x:Bind ViewModel.Progress, Mode=OneWay}"
+            RightInset="{x:Bind ViewModel.TitlebarRightInset}"
+            TitlebarService="{x:Bind ViewModel.TitlebarService}" />
         <local:MFPointerGrid x:Name="SlideCanvasContainer" Grid.Row="1">
             <canvas:CanvasControl
                 x:Name="SlideCanvas"
@@ -37,9 +42,7 @@
                 VerticalAlignment="Stretch"
                 ClearColor="Transparent"
                 CreateResources="SlideCanvas_CreateResources"
-                Draw="CanvasControl_Draw"
-                PointerMoved="SlideCanvas_PointerMoved"
-                PointerReleased="SlideCanvas_PointerReleased" />
+                Draw="CanvasControl_Draw" />
         </local:MFPointerGrid>
     </Grid>
 </Page>

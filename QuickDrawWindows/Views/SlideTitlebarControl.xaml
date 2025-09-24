@@ -17,6 +17,8 @@
             <ResourceDictionary>
                 <x:Double x:Key="ProgressBarTrackHeight">0</x:Double>
                 <CornerRadius x:Key="ProgressBarCornerRadius">0</CornerRadius>
+                <x:Boolean x:Key="True">True</x:Boolean>
+                <x:Boolean x:Key="False">False</x:Boolean>
             </ResourceDictionary>
         </Grid.Resources>
 
@@ -31,7 +33,7 @@
             x:Name="ProgressBar"
             Grid.Column="0"
             VerticalAlignment="Bottom"
-            Value="{x:Bind Progress}" />
+            Value="{x:Bind Progress, Mode=OneWay}" />
         <Grid>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition
@@ -75,7 +77,8 @@
                     Margin="10,0,0,0"
                     Padding="12,12,12,12"
                     BorderThickness="0"
-                    Command="{x:Bind NextButtonCommand}">
+                    Command="{x:Bind NextButtonCommand}"
+                    CommandParameter="{StaticResource False}">
                     <Viewbox Width="16" Height="16">
                         <SymbolIcon Symbol="Next" />
                     </Viewbox>
@@ -130,7 +133,7 @@
 
                 <VisualState x:Name="PausedState">
                     <VisualState.StateTriggers>
-                        <StateTrigger IsActive="{x:Bind Paused}" />
+                        <StateTrigger IsActive="{x:Bind Paused, Mode=OneWay}" />
                     </VisualState.StateTriggers>
                     <VisualState.Setters>
                         <Setter Target="PauseButtonSymbol.Symbol" Value="Play" />

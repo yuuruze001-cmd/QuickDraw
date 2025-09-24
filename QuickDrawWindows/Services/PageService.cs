@@ -19,7 +19,7 @@ public class PageService : IPageService
     {
         // Configure Pages and their View Models
         Configure<MainViewModel, MainPage>();
-        Configure<SlideViewModel, SlidePage2>();
+        Configure<SlideViewModel, SlidePage>();
     }
 
     public Type GetPageType(string key)

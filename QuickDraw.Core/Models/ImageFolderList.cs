@@ -1,10 +1,5 @@
-﻿using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
+﻿using System.Collections.Concurrent;
 using System.Collections.Specialized;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace QuickDraw.Core.Models;
 
@@ -14,7 +9,7 @@ public class ImageFolderList : INotifyCollectionChanged
 
     public event NotifyCollectionChangedEventHandler? CollectionChanged;
 
-    private static async Task<IEnumerable<string>> GetFolderImages(string filepath)
+    private static async Task<IEnumerable<string>> GetImagesForFolder(string filepath)
     {
         return await Task.Run(() =>
         {
@@ -34,13 +29,13 @@ public class ImageFolderList : INotifyCollectionChanged
         });
     }
 
-    public static async Task<IEnumerable<string>> GetImages(IEnumerable<string> folders)
+    public static async Task<IEnumerable<string>> GetImagesForFolders(IEnumerable<string> folders)
     {
         ConcurrentBag<string> images = [];
 
         await Parallel.ForEachAsync<string>(folders, async (folder, ct) =>
         {
-            IEnumerable<string> files = await GetFolderImages(folder);
+            IEnumerable<string> files = await GetImagesForFolder(folder);
 
             foreach (var file in files)
             {
@@ -81,7 +76,7 @@ public class ImageFolderList : INotifyCollectionChanged
         Task.Run(async () =>
         {
             await Task.Delay(200);
-            return await GetFolderImages(folder.Path);
+            return await GetImagesForFolder(folder.Path);
         }).ContinueWith((t) =>
         {
             if (t.IsFaulted)

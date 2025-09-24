@@ -49,7 +49,4 @@ public class Settings
     public ImageFolderList ImageFolderList { get; set; } = new ImageFolderList();
 
     public TimerEnum SlideTimerDuration { get; set; }
-
-    [JsonIgnore]
-    public List<string> SlidePaths { get; set; } = [];
 }

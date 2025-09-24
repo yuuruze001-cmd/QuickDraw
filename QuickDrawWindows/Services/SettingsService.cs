@@ -56,6 +56,10 @@ class SettingsService : ISettingsService
         {
             Debug.WriteLine(ex);
         }
+        finally
+        {
+            _ioSemaphore.Release();
+        }
     }
 
     public async Task WriteSettings()
@@ -80,6 +84,10 @@ class SettingsService : ISettingsService
         catch (Exception ex)
         {
             Debug.WriteLine(ex);
+        }
+        finally
+        {
+            _ioSemaphore.Release();
         }
     }
 }

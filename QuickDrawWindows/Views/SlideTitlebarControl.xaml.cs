@@ -11,7 +11,7 @@ namespace QuickDraw.Views;
 
 [DependencyProperty<bool>("Paused", DefaultValue = false)]
 [DependencyProperty<Visibility>("PauseVisibility", DefaultValue = Visibility.Visible)]
-[DependencyProperty<double>("Progress", DefaultValue = 25)]
+[DependencyProperty<double>("Progress", DefaultValue = 0)]
 [DependencyProperty<ICommand>("NextButtonCommand")]
 [DependencyProperty<ICommand>("PreviousButtonCommand")]
 [DependencyProperty<ICommand>("GrayscaleButtonCommand")]
