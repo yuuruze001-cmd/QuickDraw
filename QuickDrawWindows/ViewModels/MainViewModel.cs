@@ -15,7 +15,7 @@ using System.Threading.Tasks;
 
 namespace QuickDraw.ViewModels;
 
-public partial class MainViewModel : Base.ViewModelWithToolbarBase, INavigationAware
+public partial class MainViewModel : Base.ViewModelWithTitlebarBase, INavigationAware
 {
     [ObservableProperty]
     public partial double TimerSliderValue { get; set; } = TimerEnum.T2m.ToSliderValue();

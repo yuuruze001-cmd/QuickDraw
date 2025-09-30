@@ -7,6 +7,7 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Navigation;
 using QuickDraw.ViewModels;
+using QuickDraw.Views.Base;
 using System;
 using System.Collections.Concurrent;
 using System.Diagnostics;
@@ -61,7 +62,7 @@ public partial class MFPointerGrid : Grid
     }
 }
 
-public sealed partial class SlidePage : Page
+public sealed partial class SlidePage : PageBase
 {
     // TODO: Implement clicking the image to open it in explorer
     private Task? _initImageLoadTask;
@@ -78,10 +79,10 @@ public sealed partial class SlidePage : Page
         get;
     }
 
-    public SlidePage()
+    public SlidePage() : base(App.GetService<SlideViewModel>())
     {
-        ViewModel = App.GetService<SlideViewModel>();
-        ViewModel.InvalidateCanvas += ViewModel_InvalidateCanvas;
+        ViewModel = (SlideViewModel)ViewModelBase;
+        ViewModel.InvalidateCanvas += InvalidateCanvas;
         ViewModel.NextImageHandler += (sender, args) => NextImage(args.ImagePath);
         ViewModel.PreviousImageHandler += (sender, args) => PrevImage(args.ImagePath);
 
@@ -145,7 +146,7 @@ public sealed partial class SlidePage : Page
         _imageLoadQueue.Enqueue(new(imagePath, LoadDirection.Backwards));
     }
 
-    private void ViewModel_InvalidateCanvas(object? sender, EventArgs e)
+    private void InvalidateCanvas(object? sender, EventArgs e)
     {
         SlideCanvas.Invalidate();
     }

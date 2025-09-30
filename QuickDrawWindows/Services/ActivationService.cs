@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace QuickDraw.Services;
 
-public class ActivationService(ActivationHandler<LaunchActivatedEventArgs> defaultHandler, IEnumerable<IActivationHandler> activationHandlers, ISettingsService settingsService, ITitlebarService titlebarService) : IActivationService
+public class ActivationService(ActivationHandler<LaunchActivatedEventArgs> defaultHandler, IEnumerable<IActivationHandler> activationHandlers, ISettingsService settingsService) : IActivationService
 {
     public async Task ActivateAsync(object activationArgs)
     {

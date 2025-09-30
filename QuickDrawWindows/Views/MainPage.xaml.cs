@@ -2,6 +2,7 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Data;
 using QuickDraw.ViewModels;
+using QuickDraw.Views.Base;
 using Syncfusion.UI.Xaml.Sliders;
 using System;
 using System.Collections.Generic;
@@ -103,17 +104,17 @@ internal partial class DoubleToEnumConverter(Type type) : IValueConverter
 /// <summary>
 /// An empty page that can be used on its own or navigated to within a Frame.
 /// </summary>
-public sealed partial class MainPage : Page
+public sealed partial class MainPage : PageBase
 {
     public MainViewModel ViewModel
     {
         get;
     }
 
-    public MainPage()
+    public MainPage() : base(App.GetService<MainViewModel>())
     {
 
-        ViewModel = App.GetService<MainViewModel>();
+        ViewModel = (MainViewModel)base.ViewModelBase;
 
         this.InitializeComponent();
         this.Resources.Add("doubleToEnumConverter", new DoubleToEnumConverter(typeof(Core.Models.TimerEnum)));

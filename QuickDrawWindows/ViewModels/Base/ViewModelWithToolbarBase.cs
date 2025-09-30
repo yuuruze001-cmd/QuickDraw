@@ -1,14 +1,12 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
-using CommunityToolkit.Mvvm.Input;
 using Microsoft.UI.Xaml;
 using QuickDraw.Contracts.Services;
 using QuickDraw.Contracts.ViewModels;
 using QuickDraw.Views.Base;
-using System.Diagnostics;
 
 namespace QuickDraw.ViewModels.Base;
 
-public partial class ViewModelWithToolbarBase : ObservableObject
+public partial class ViewModelWithTitlebarBase : ObservableObject, IUnloadable, IViewModel
 {
     public ITitlebarService TitlebarService;
 
@@ -18,7 +16,7 @@ public partial class ViewModelWithToolbarBase : ObservableObject
     [ObservableProperty]
     public partial bool TitlebarInactive { get; set; }
 
-    public ViewModelWithToolbarBase(ITitlebarService titlebarService)
+    public ViewModelWithTitlebarBase(ITitlebarService titlebarService)
     {
         TitlebarService = titlebarService;
         App.Window.Activated += Window_Activated;
@@ -39,5 +37,10 @@ public partial class ViewModelWithToolbarBase : ObservableObject
         {
             TitlebarInactive = false;
         }
+    }
+
+    public virtual void Unloaded(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
+    {
+        App.Window.Activated -= Window_Activated;
     }
 }

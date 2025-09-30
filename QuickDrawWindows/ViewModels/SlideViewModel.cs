@@ -28,7 +28,7 @@ public class LoadImageEventArgs(string imagePath)
     public string ImagePath = imagePath;
 }
 
-public partial class SlideViewModel(ITitlebarService titlebarService, INavigationService navigationService, ISlideImageService slideImageService) : Base.ViewModelWithToolbarBase(titlebarService), INavigationAware
+public partial class SlideViewModel(ITitlebarService titlebarService, INavigationService navigationService, ISlideImageService slideImageService) : Base.ViewModelWithTitlebarBase(titlebarService), INavigationAware
 {
     public event EventHandler<LoadImageEventArgs>? NextImageHandler;
     public event EventHandler<LoadImageEventArgs>? PreviousImageHandler;
@@ -89,7 +89,7 @@ public partial class SlideViewModel(ITitlebarService titlebarService, INavigatio
     DispatcherQueueTimer? _slideTimer = null;
     private uint _ticksElapsed = 0;
 
-    public void StartTimer(DispatcherQueue dispatcherQueue) 
+    public void StartTimer(DispatcherQueue dispatcherQueue)
     {
         var timerDurationEnum = slideImageService.SlideDuration;
 
@@ -154,7 +154,7 @@ public partial class SlideViewModel(ITitlebarService titlebarService, INavigatio
     }
 
     [ObservableProperty]
-    public partial bool Paused {  get; private set; }
+    public partial bool Paused { get; private set; }
 
     partial void OnGrayscaleChanged(bool oldValue, bool newValue)
     {

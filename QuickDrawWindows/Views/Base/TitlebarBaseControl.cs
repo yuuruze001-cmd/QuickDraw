@@ -29,10 +29,10 @@ public abstract partial class TitlebarBaseControl : UserControl
 
     public TitlebarBaseControl()
     {
-        SizeChanged += TitlebarBaseControl_SizeChanged;
+        SizeChanged += OnSizeChanged;
     }
 
-    protected void TitlebarBaseControl_SizeChanged(object sender, Microsoft.UI.Xaml.SizeChangedEventArgs e)
+    protected void OnSizeChanged(object sender, Microsoft.UI.Xaml.SizeChangedEventArgs e)
     {
         var regions = CalculateDragRegions();
 

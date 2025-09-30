@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<Page
+<base:PageBase
     x:Class="QuickDraw.Views.SlidePage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:base="using:QuickDraw.Views.Base"
     xmlns:canvas="using:Microsoft.Graphics.Canvas.UI.Xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="using:QuickDraw.Views"
@@ -10,9 +11,9 @@
     Unloaded="SlidePage_Unloaded"
     mc:Ignorable="d">
 
-    <Page.Background>
+    <base:PageBase.Background>
         <SolidColorBrush Color="#00000000" />
-    </Page.Background>
+    </base:PageBase.Background>
 
     <Grid>
         <Grid.RowDefinitions>
@@ -45,4 +46,4 @@
                 Draw="CanvasControl_Draw" />
         </local:MFPointerGrid>
     </Grid>
-</Page>
+</base:PageBase>
