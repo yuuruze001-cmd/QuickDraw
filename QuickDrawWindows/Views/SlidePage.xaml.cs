@@ -63,21 +63,21 @@ public sealed partial class SlidePage : Page
     {
         _prevBitmap.Item2?.Dispose();
         _prevBitmap = _currentBitmap;
-        SlideCanvas?.Invalidate();
         _currentBitmap = _nextBitmap;
         _nextBitmap = (imagePath, null);
         _nextBitmap = (imagePath, await CanvasVirtualBitmap.LoadAsync(resourceCreator, imagePath));
+        SlideCanvas?.Invalidate();
     }
 
     private async Task LoadPrevTask(ICanvasResourceCreator resourceCreator, string imagePath)
     {
         _nextBitmap.Item2?.Dispose();
         _nextBitmap = _currentBitmap;
-        SlideCanvas?.Invalidate();
         _currentBitmap = _prevBitmap;
 
         _prevBitmap = (imagePath, null);
         _prevBitmap = (imagePath, await CanvasVirtualBitmap.LoadAsync(resourceCreator, imagePath));
+        SlideCanvas?.Invalidate();
     }
 
     private void TaskContinue()
@@ -143,15 +143,8 @@ public sealed partial class SlidePage : Page
         if (!IsLoadInProgress())
         {
             var bitmap = _currentBitmap.Item2;
-            #region Draw the image.
-            if (bitmap != null)
-            {
-                CanvasCommandList cl = new(sender);
-                _ = DrawBitmapToView(ref cl, bitmap, new Size(sender.ActualWidth, sender.ActualHeight), ViewModel.Grayscale);
 
-                args.DrawingSession.DrawImage(cl);
-            }
-            #endregion
+            _ = DrawBitmapToView(args.DrawingSession, bitmap, new Size(sender.ActualWidth, sender.ActualHeight), ViewModel.Grayscale);
         }
     }
 
@@ -185,7 +178,7 @@ public sealed partial class SlidePage : Page
         return false;
     }
 
-    private static Rect? DrawBitmapToView(ref CanvasCommandList cl, CanvasVirtualBitmap? bitmap, Size canvasSize, bool grayscale)
+    private static Rect? DrawBitmapToView(CanvasDrawingSession session, CanvasVirtualBitmap? bitmap, Size canvasSize, bool grayscale)
     {
         if (bitmap == null)
             return null;
@@ -214,11 +207,9 @@ public sealed partial class SlidePage : Page
 
         Rect destBounds = new(imagePos, imageRenderSize);
 
-        using CanvasDrawingSession clds = cl.CreateDrawingSession();
-
         ICanvasImage? finalImage = grayscale ? new GrayscaleEffect() { Source = bitmap } : bitmap;
 
-        clds.DrawImage(finalImage, destBounds, bitmap?.Bounds ?? new Rect());
+        session.DrawImage(finalImage, destBounds, bitmap?.Bounds ?? new Rect());
 
         return destBounds;
     }
