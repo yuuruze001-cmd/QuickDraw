@@ -95,7 +95,7 @@ internal class NavigationService(IPageService pageService) : INavigationService
             _frame.Tag = clearNavigation;
             var vmBeforeNavigation = _frame.GetPageViewModel();
 
-            var navigated = false;
+            bool navigated;
             if (transitionInfo != null)
             {
                 navigated = _frame.Navigate(pageType, parameter, transitionInfo);
@@ -139,5 +139,5 @@ internal class NavigationService(IPageService pageService) : INavigationService
         }
     }
 
-    public void SetListDataItemForNextConnectedAnimation(object item) => Frame.SetListDataItemForNextConnectedAnimation(item);
+    public void SetListDataItemForNextConnectedAnimation(object item) => Frame?.SetListDataItemForNextConnectedAnimation(item);
 }

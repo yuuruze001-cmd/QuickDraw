@@ -19,21 +19,17 @@ namespace QuickDraw.Views;
 /// Converts the value of the internal slider into text.
 /// </summary>
 /// <remarks>Internal use only.</remarks>
-internal partial class StringToEnumConverter : IValueConverter
+internal partial class StringToEnumConverter(Type type) : IValueConverter
 {
-    private readonly Type _enum;
-
-    public StringToEnumConverter(Type type) => _enum = type;
-
     public object? Convert(object value,
             Type targetType,
             object parameter,
             string language)
     {
-        var _name = Enum.ToObject(_enum, (int)Double.Parse((string)value));
+        var _name = Enum.ToObject(type, (int)Double.Parse((string)value));
 
         // Look for a 'Display' attribute.
-        var _member = _enum
+        var _member = type
             .GetRuntimeFields()
             .FirstOrDefault(x => x.Name == _name.ToString());
         if (_member == null)
@@ -41,8 +37,8 @@ internal partial class StringToEnumConverter : IValueConverter
             return _name;
         }
 
-        var _attr = (DisplayAttribute?)_member
-            .GetCustomAttribute(typeof(DisplayAttribute));
+        var _attr = _member
+            .GetCustomAttribute<DisplayAttribute>();
         if (_attr == null)
         {
             return _name;
@@ -65,24 +61,17 @@ internal partial class StringToEnumConverter : IValueConverter
 /// Converts the value of the internal slider into text.
 /// </summary>
 /// <remarks>Internal use only.</remarks>
-internal partial class DoubleToEnumConverter : IValueConverter
+internal partial class DoubleToEnumConverter(Type type) : IValueConverter
 {
-    private readonly Type _enum;
-
-    public DoubleToEnumConverter(Type type)
-    {
-        _enum = type;
-    }
-
     public object? Convert(object value,
             Type targetType,
             object parameter,
             string language)
     {
-        var _name = Enum.ToObject(_enum, (int)(double)value);
+        var _name = Enum.ToObject(type, (int)(double)value);
 
         // Look for a 'Display' attribute.
-        var _member = _enum
+        var _member = type
             .GetRuntimeFields()
             .FirstOrDefault(x => x.Name == _name.ToString());
         if (_member == null)
@@ -90,8 +79,8 @@ internal partial class DoubleToEnumConverter : IValueConverter
             return _name;
         }
 
-        var _attr = (DisplayAttribute?)_member
-            .GetCustomAttribute(typeof(DisplayAttribute));
+        var _attr = _member
+            .GetCustomAttribute<DisplayAttribute>();
         if (_attr == null)
         {
             return _name;

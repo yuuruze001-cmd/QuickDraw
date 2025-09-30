@@ -5,9 +5,13 @@ using Microsoft.Graphics.Canvas.UI.Xaml;
 using Microsoft.UI.Input;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Navigation;
 using QuickDraw.ViewModels;
 using System;
 using System.Collections.Concurrent;
+using System.Diagnostics;
+using System.Threading;
+using System.Threading.Channels;
 using System.Threading.Tasks;
 using Windows.Foundation;
 
@@ -15,6 +19,34 @@ using Windows.Foundation;
 // and more about our project templates, see: http://aka.ms/winui-project-info.
 
 namespace QuickDraw.Views;
+
+public enum LoadDirection
+{
+    Backwards,
+    Forwards
+}
+
+public record LoadData(string Path, LoadDirection Direction);
+
+public class ChannelQueue<T>
+{
+    private readonly Channel<T> _channel = Channel.CreateUnbounded<T>();
+
+    public bool Enqueue(T data)
+    {
+        return _channel.Writer.TryWrite(data);
+    }
+
+    public ValueTask<T> DequeueAsync(CancellationToken token = default)
+    {
+        return _channel.Reader.ReadAsync(token);
+    }
+
+    public ValueTask<bool> WaitForNext(CancellationToken token = default)
+    {
+        return _channel.Reader.WaitToReadAsync(token);
+    }
+}
 
 public partial class MFPointerGrid : Grid
 {
@@ -38,9 +70,8 @@ public sealed partial class SlidePage : Page
     private (string, CanvasVirtualBitmap?) _nextBitmap;
     private (string, CanvasVirtualBitmap?) _prevBitmap;
 
-    private Task? _currentTask;
-
-    private readonly ConcurrentQueue<Func<Task>> _loadTaskQueue = new();
+    private readonly CancellationTokenSource _cts = new();
+    private readonly ChannelQueue<LoadData> _imageLoadQueue = new();
 
     public SlideViewModel ViewModel
     {
@@ -59,7 +90,32 @@ public sealed partial class SlidePage : Page
         this.InitializeComponent();
     }
 
-    private async Task LoadNextTask(ICanvasResourceCreator resourceCreator, string imagePath)
+    protected override void OnNavigatedTo(NavigationEventArgs e)
+    {
+        base.OnNavigatedTo(e);
+
+        _ = HandleLoads(_cts.Token);
+    }
+
+    private async Task HandleLoads(CancellationToken token)
+    {
+        while (await _imageLoadQueue.WaitForNext(token))
+        {
+            var data = await _imageLoadQueue.DequeueAsync(token);
+
+            switch (data.Direction)
+            {
+                case LoadDirection.Forwards:
+                    await LoadNext(SlideCanvas, data.Path);
+                    break;
+                case LoadDirection.Backwards:
+                    await LoadPrev(SlideCanvas, data.Path);
+                    break;
+            }
+        }
+    }
+
+    private async Task LoadNext(ICanvasResourceCreator resourceCreator, string imagePath)
     {
         _prevBitmap.Item2?.Dispose();
         _prevBitmap = _currentBitmap;
@@ -69,62 +125,24 @@ public sealed partial class SlidePage : Page
         SlideCanvas?.Invalidate();
     }
 
-    private async Task LoadPrevTask(ICanvasResourceCreator resourceCreator, string imagePath)
+    private async Task LoadPrev(ICanvasResourceCreator resourceCreator, string imagePath)
     {
         _nextBitmap.Item2?.Dispose();
         _nextBitmap = _currentBitmap;
         _currentBitmap = _prevBitmap;
-
         _prevBitmap = (imagePath, null);
         _prevBitmap = (imagePath, await CanvasVirtualBitmap.LoadAsync(resourceCreator, imagePath));
         SlideCanvas?.Invalidate();
     }
 
-    private void TaskContinue()
-    {
-        if (!_loadTaskQueue.IsEmpty)
-        {
-            if (_loadTaskQueue.TryDequeue(out var dequeueResult))
-            {
-                _currentTask = dequeueResult().ContinueWith(task => {
-                    TaskContinue();
-                });
-            }
-        }
-        else
-        {
-            _currentTask = null;
-        }
-    }
-
     public void NextImage(string imagePath)
     {
-        if (_currentTask == null)
-        {
-            _currentTask = LoadNextTask(SlideCanvas, imagePath).ContinueWith(task =>
-            {
-                TaskContinue();
-            });
-        }
-        else
-        {
-            _loadTaskQueue.Enqueue(() => LoadNextTask(SlideCanvas, imagePath));
-        }
+        _imageLoadQueue.Enqueue(new(imagePath,LoadDirection.Forwards));
     }
 
     public void PrevImage(string imagePath)
     {
-        if (_currentTask == null)
-        {
-            _currentTask = LoadPrevTask(SlideCanvas, imagePath).ContinueWith(task =>
-            {
-                TaskContinue();
-            });
-        }
-        else
-        {
-            _loadTaskQueue.Enqueue(() => LoadPrevTask(SlideCanvas, imagePath));
-        }
+        _imageLoadQueue.Enqueue(new(imagePath, LoadDirection.Backwards));
     }
 
     private void ViewModel_InvalidateCanvas(object? sender, EventArgs e)
@@ -134,6 +152,12 @@ public sealed partial class SlidePage : Page
 
     void SlidePage_Unloaded(object sender, RoutedEventArgs e)
     {
+        _cts.Cancel();
+
+        _currentBitmap.Item2?.Dispose();
+        _prevBitmap.Item2?.Dispose();
+        _nextBitmap.Item2?.Dispose();
+
         this.SlideCanvas.RemoveFromVisualTree();
         this.SlideCanvas = null;
     }

@@ -14,12 +14,6 @@ using System.Threading.Tasks;
 
 namespace QuickDraw.ViewModels;
 
-public enum LoadDirection
-{
-    Backwards,
-    Forwards
-}
-
 static class IntExtensions
 {
     public static int Mod(this int value, int denominator)
@@ -29,11 +23,9 @@ static class IntExtensions
     }
 }
 
-public class LoadImageEventArgs
+public class LoadImageEventArgs(string imagePath)
 {
-    public string ImagePath;
-
-    public LoadImageEventArgs(string imagePath) => this.ImagePath = imagePath;
+    public string ImagePath = imagePath;
 }
 
 public partial class SlideViewModel(ITitlebarService titlebarService, INavigationService navigationService, ISlideImageService slideImageService) : Base.ViewModelWithToolbarBase(titlebarService), INavigationAware
