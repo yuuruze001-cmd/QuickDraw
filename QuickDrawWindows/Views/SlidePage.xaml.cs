@@ -95,6 +95,8 @@ public sealed partial class SlidePage : PageBase
     {
         base.OnNavigatedTo(e);
 
+        ViewModel.StartTimer(DispatcherQueue);
+
         _ = HandleLoads(_cts.Token);
     }
 
@@ -269,7 +271,5 @@ public sealed partial class SlidePage : PageBase
         _prevBitmap = (ViewModel.PreviousImagePath!, await prevBitmapTask);
         _currentBitmap = (ViewModel.CurrentImagePath!, await currBitmapTask);
         _nextBitmap = (ViewModel.NextImagePath!, await nextBitmapTask);
-
-        ViewModel.StartTimer(DispatcherQueue);
     }
 }
