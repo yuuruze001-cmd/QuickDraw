@@ -32,7 +32,6 @@ public partial class App : Application
 
     public App()
     {
-        // TODO: Move to App SDK 1.8 (currently syncfusion doesn't work with that version)
         try
         {
             string resourceName = "syncfusion.license";

@@ -60,12 +60,12 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.0-rc.1.25451.107" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.0-rc.2.25502.107" />
     <PackageReference Include="Microsoft.Graphics.Win2D" Version="1.3.2" />
-    <PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.26100.4948" />
-    <PackageReference Include="Microsoft.WindowsAppSDK" Version="1.7.250606001" />
-    <PackageReference Include="Syncfusion.Grid.WinUI" Version="31.1.19" />
-    <PackageReference Include="Syncfusion.Sliders.WinUI" Version="31.1.19" />
+    <PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.26100.6584" />
+    <PackageReference Include="Microsoft.WindowsAppSDK" Version="2.0.250930001-experimental1" />
+    <PackageReference Include="Syncfusion.Grid.WinUI" Version="31.2.2" />
+    <PackageReference Include="Syncfusion.Sliders.WinUI" Version="31.2.2" />
     <Manifest Include="$(ApplicationManifest)" />
   </ItemGroup>
 
